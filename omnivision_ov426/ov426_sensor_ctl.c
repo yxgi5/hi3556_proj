@@ -299,7 +299,7 @@ void ov426_init_400x400_12bit_30fps(VI_PIPE ViPipe)
 	ov426_write_register(ViPipe, 0x4052, 0x01); // Get BLC all,one channel blc @ BLC control
 	ov426_write_register(ViPipe, 0x302a, 0x01); // Pregain 1.25X @ system control
 	ov426_write_register(ViPipe, 0x350b, 0x10); // AEC real gain[7:0] @ AEC/AGC registers
-	ov426_write_register(ViPipe, 0x3503, 0x00); // AEC Auto / AGC Auto @ AEC/AGC registers
+	ov426_write_register(ViPipe, 0x3503, 0x03); // AEC Auto / AGC Auto @ AEC/AGC registers
 	ov426_write_register(ViPipe, 0x302a, 0x10); // Pregain 1.0X @ system control
     // ov426_default_reg_init(ViPipe); // hi3556 sdk pattern
 	ov426_write_register(ViPipe, 0x0100, 0x00); // software_standby

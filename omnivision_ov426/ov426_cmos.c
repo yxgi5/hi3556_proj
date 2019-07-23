@@ -105,24 +105,18 @@ extern int  ov426_read_register(VI_PIPE ViPipe, int addr);
 #define OV426_FULL_LINES_MAX  (0xFFFF)
 
 
+// modified by andreas
+// vts related regs maybe these two!?
+#define VMAX_ADDR_H             (0x350C)    // VTS[15:8] Total vertical timing size
+#define VMAX_ADDR_L             (0x350D)    // VTS[7:0] Total vertical timing size
 
-#define VMAX_ADDR_H             (0x380E)    // VTS[15:8] Total vertical timing size @ timing control
-#define VMAX_ADDR_L             (0x380F)    // VTS[7:0] Total vertical timing size @ timing control
-#define AGAIN_H                  (0x3508)   // Long gain[13:8] @ staggered HDR control
-#define AGAIN_L                  (0x3509)   // LONG GAIN @ staggered HDR control
-#define DGAIN_H                  (0x350A)   // Long digital gain[13:8] @ MEC/MGC control
-#define DGAIN_L                  (0x350B)   // Long digital gain[7:0] @ MEC/MGC control
-#define SHORT_AGAIN_H            (0x350C)   // Short gain[13:8] EC/MGC control
-#define SHORT_AGAIN_L            (0x350D)   // Short gain[7:0] @ MEC/MGC control
-#define SHORT_DGAIN_H            (0x350E)   // Short digital gain[13:8] @ MEC/MGC control
-#define SHORT_DGAIN_L            (0x350F)   // Short digital gain[7:0] @ MEC/MGC control
-#define EXPOSURE_TIME_LONG_H    (0x3501)    // Long exposure[15:8] @ MEC/MGC control
-#define EXPOSURE_TIME_LONG_L    (0x3502)    // Long exposure[7:0] @ MEC/MGC control
-#define EXPOSURE_TIME_SHORT_H   (0x3511)    // Short exposure[15:8] @ MEC/MGC control
-#define EXPOSURE_TIME_SHORT_L   (0x3512)    // Short exposure[7:0] @ MEC/MGC control
-#define LINE_LEN_PCK             (0x300C)   // chip_id[7:0] @ system control
-
-
+// added by andreas
+// ref to ov9732, these regs are simular to ov426
+#define AEC_PK_EXPO_H           (0x3501)  /*  SHR0[19:16]  */
+#define AEC_PK_EXPO_M           (0x3502)  /*  SHR0[15:8] */
+#define AEC_PK_EXPO_L           (0x3503)  /*  SHR0[7:0] */
+#define GAIN_ADDR_H             (0x350A)  // maybe no use based on 3.2.4@P34
+#define GAIN_ADDR_L             (0x350B)
 
 #define OV426_INCREASE_LINES (0) /* make real fps less than stand fps because NVR require*/
 
@@ -131,13 +125,6 @@ extern int  ov426_read_register(VI_PIPE ViPipe, int addr);
 
 //sensor fps mode
 #define Ov426_400x400_12bit_30fps      (1)
-
-
-#define IMX334_RES_IS_4K30_12BIT(w, h)    ((3840 == w) && (2160 == h))
-
-//sensor gain
-#define IMX334_AGAIN_MAX    (31356)     //the max again is 31356
-#define IMX334_DGAIN_MAX    (124833)    //the max dgain is 124833
 
 static HI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSnsDft)
 {
@@ -156,12 +143,20 @@ static HI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSnsD
     pstAeSnsDft->stIntTimeAccu.enAccuType = AE_ACCURACY_LINEAR;
     pstAeSnsDft->stIntTimeAccu.f32Accuracy = 1;
     pstAeSnsDft->stIntTimeAccu.f32Offset = 0;
+//	    pstAeSnsDft->u32MaxIntTime = (pstSnsState->u32FLStd >= 4) ? (pstSnsState->u32FLStd - 4) : (0);//pstSnsState->u32FLStd - 4;
+//	    pstAeSnsDft->u32MinIntTime = 4;
+//	    pstAeSnsDft->u32MaxIntTimeTarget = 65535;
+//	    pstAeSnsDft->u32MinIntTimeTarget = 2;
 
-    pstAeSnsDft->stAgainAccu.enAccuType = AE_ACCURACY_TABLE;
-    pstAeSnsDft->stAgainAccu.f32Accuracy = 1;
+    pstAeSnsDft->stAgainAccu.enAccuType = AE_ACCURACY_LINEAR; // by andreas
+    pstAeSnsDft->stAgainAccu.f32Accuracy = 0.0625; // 1/16, by andreas
+//	    pstAeSnsDft->u32MaxAgain = 16;// by andreas
+//	    pstAeSnsDft->u32MinAgain = 0;// by andreas
+//	    pstAeSnsDft->u32MaxAgainTarget = pstAeSnsDft->u32MaxAgain;// by andreas
+//	    pstAeSnsDft->u32MinAgainTarget = pstAeSnsDft->u32MinAgain;// by andreas
 
-    pstAeSnsDft->stDgainAccu.enAccuType = AE_ACCURACY_TABLE;
-    pstAeSnsDft->stDgainAccu.f32Accuracy = 1;
+    pstAeSnsDft->stDgainAccu.enAccuType = AE_ACCURACY_LINEAR;// by andreas
+    pstAeSnsDft->stDgainAccu.f32Accuracy = 0;// by andreas
 
     pstAeSnsDft->u32ISPDgainShift = 8;
     pstAeSnsDft->u32MinISPDgainTarget = 1 << pstAeSnsDft->u32ISPDgainShift;
@@ -211,63 +206,63 @@ static HI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSnsD
             pstAeSnsDft->u32MinIntTimeTarget = pstAeSnsDft->u32MinIntTime;
             pstAeSnsDft->stIntTimeAccu.f32Offset = 0.156;
 
-            pstAeSnsDft->u32MaxAgain = 31356;
-            pstAeSnsDft->u32MinAgain = 1024;
+            pstAeSnsDft->u32MaxAgain = 16;// by andreas
+            pstAeSnsDft->u32MinAgain = 0;// by andreas
             pstAeSnsDft->u32MaxAgainTarget = pstAeSnsDft->u32MaxAgain;
             pstAeSnsDft->u32MinAgainTarget = pstAeSnsDft->u32MinAgain;
 
-            pstAeSnsDft->u32MaxDgain = 128913;  /* if Dgain enable,please set ispdgain bigger than 1*/
-            pstAeSnsDft->u32MinDgain = 1024;
+            pstAeSnsDft->u32MaxDgain = 0;  /* if Dgain enable,please set ispdgain bigger than 1*/
+            pstAeSnsDft->u32MinDgain = 0;
             pstAeSnsDft->u32MaxDgainTarget = pstAeSnsDft->u32MaxDgain;
             pstAeSnsDft->u32MinDgainTarget = pstAeSnsDft->u32MinDgain;
             pstAeSnsDft->u32HmaxTimes = (1000000 * 1000) / (OV426_VMAX_12bit_LINEAR * 30);
             break;
-        case WDR_MODE_2To1_LINE:
-            pstAeSnsDft->au8HistThresh[0] = 0xC;
-            pstAeSnsDft->au8HistThresh[1] = 0x18;
-            pstAeSnsDft->au8HistThresh[2] = 0x60;
-            pstAeSnsDft->au8HistThresh[3] = 0x80;
-
-
-            pstAeSnsDft->u32MaxIntTime = pstSnsState->u32FLStd - 2;
-
-            pstAeSnsDft->stIntTimeAccu.enAccuType = AE_ACCURACY_LINEAR;
-            pstAeSnsDft->stIntTimeAccu.f32Accuracy = 2;
-            pstAeSnsDft->u32MinIntTime = 2;
-            pstAeSnsDft->stIntTimeAccu.f32Offset = 0.311;
-
-            pstAeSnsDft->u32MaxIntTimeTarget = 65535;
-            pstAeSnsDft->u32MinIntTimeTarget = pstAeSnsDft->u32MinIntTime;
-
-            pstAeSnsDft->u32MaxAgain = 31356;
-            pstAeSnsDft->u32MinAgain = 1024;
-            pstAeSnsDft->u32MaxAgainTarget = pstAeSnsDft->u32MaxAgain;
-            pstAeSnsDft->u32MinAgainTarget = pstAeSnsDft->u32MinAgain;
-
-            pstAeSnsDft->u32MaxDgain = 128913;
-            pstAeSnsDft->u32MinDgain = 1024;
-            pstAeSnsDft->u32MaxDgainTarget = pstAeSnsDft->u32MaxDgain;
-            pstAeSnsDft->u32MinDgainTarget = pstAeSnsDft->u32MinDgain;
-
-            pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ? g_au32InitExposure[ViPipe] : 16462;
-            pstAeSnsDft->u32HmaxTimes = (1000000 * 1000) / (OV426_VMAX_12bit_LINEAR * 30);
-            if (ISP_FSWDR_LONG_FRAME_MODE == genFSWDRMode[ViPipe])
-            {
-                pstAeSnsDft->u8AeCompensation = 56;
-                pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
-            }
-            else
-            {
-                pstAeSnsDft->u32MaxDgainTarget = 1024;
-                pstAeSnsDft->u32MaxISPDgainTarget = 4096;
-                pstAeSnsDft->u8AeCompensation = 24;
-                pstAeSnsDft->enAeExpMode = AE_EXP_LOWLIGHT_PRIOR;
-                pstAeSnsDft->u16ManRatioEnable = HI_FALSE;
-                pstAeSnsDft->au32Ratio[0] = 0x400;
-                pstAeSnsDft->au32Ratio[1] = 0x40;
-                pstAeSnsDft->au32Ratio[2] = 0x40;
-            }
-            break;
+//	        case WDR_MODE_2To1_LINE:
+//	            pstAeSnsDft->au8HistThresh[0] = 0xC;
+//	            pstAeSnsDft->au8HistThresh[1] = 0x18;
+//	            pstAeSnsDft->au8HistThresh[2] = 0x60;
+//	            pstAeSnsDft->au8HistThresh[3] = 0x80;
+//	
+//	
+//	            pstAeSnsDft->u32MaxIntTime = pstSnsState->u32FLStd - 2;
+//	
+//	            pstAeSnsDft->stIntTimeAccu.enAccuType = AE_ACCURACY_LINEAR;
+//	            pstAeSnsDft->stIntTimeAccu.f32Accuracy = 2;
+//	            pstAeSnsDft->u32MinIntTime = 2;
+//	            pstAeSnsDft->stIntTimeAccu.f32Offset = 0.311;
+//	
+//	            pstAeSnsDft->u32MaxIntTimeTarget = 65535;
+//	            pstAeSnsDft->u32MinIntTimeTarget = pstAeSnsDft->u32MinIntTime;
+//	
+//	            pstAeSnsDft->u32MaxAgain = 31356;
+//	            pstAeSnsDft->u32MinAgain = 1024;
+//	            pstAeSnsDft->u32MaxAgainTarget = pstAeSnsDft->u32MaxAgain;
+//	            pstAeSnsDft->u32MinAgainTarget = pstAeSnsDft->u32MinAgain;
+//	
+//	            pstAeSnsDft->u32MaxDgain = 128913;
+//	            pstAeSnsDft->u32MinDgain = 1024;
+//	            pstAeSnsDft->u32MaxDgainTarget = pstAeSnsDft->u32MaxDgain;
+//	            pstAeSnsDft->u32MinDgainTarget = pstAeSnsDft->u32MinDgain;
+//	
+//	            pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ? g_au32InitExposure[ViPipe] : 16462;
+//	            pstAeSnsDft->u32HmaxTimes = (1000000 * 1000) / (OV426_VMAX_12bit_LINEAR * 30);
+//	            if (ISP_FSWDR_LONG_FRAME_MODE == genFSWDRMode[ViPipe])
+//	            {
+//	                pstAeSnsDft->u8AeCompensation = 56;
+//	                pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
+//	            }
+//	            else
+//	            {
+//	                pstAeSnsDft->u32MaxDgainTarget = 1024;
+//	                pstAeSnsDft->u32MaxISPDgainTarget = 4096;
+//	                pstAeSnsDft->u8AeCompensation = 24;
+//	                pstAeSnsDft->enAeExpMode = AE_EXP_LOWLIGHT_PRIOR;
+//	                pstAeSnsDft->u16ManRatioEnable = HI_FALSE;
+//	                pstAeSnsDft->au32Ratio[0] = 0x400;
+//	                pstAeSnsDft->au32Ratio[1] = 0x40;
+//	                pstAeSnsDft->au32Ratio[2] = 0x40;
+//	            }
+//	            break;
     }
 
     return HI_SUCCESS;
@@ -308,31 +303,31 @@ static HI_VOID cmos_fps_set(VI_PIPE ViPipe, HI_FLOAT f32Fps, AE_SENSOR_DEFAULT_S
 
     if (WDR_MODE_NONE == pstSnsState->enWDRMode)
     {
-        pstSnsState->astRegsInfo[0].astI2cData[5].u32Data = (u32Lines & 0xFF);
-        pstSnsState->astRegsInfo[0].astI2cData[6].u32Data = ((u32Lines & 0xFF00) >> 8);
-        pstSnsState->astRegsInfo[0].astI2cData[7].u32Data = ((u32Lines & 0xF0000) >> 16);
+        pstSnsState->astRegsInfo[0].astI2cData[0].u32Data = LOW_8BITS(u32Lines);
+        pstSnsState->astRegsInfo[0].astI2cData[1].u32Data = HIGH_8BITS(u32Lines);
+//	        pstSnsState->astRegsInfo[0].astI2cData[7].u32Data = ((u32Lines & 0xF0000) >> 16);
     }
-    else
-    {
-        pstSnsState->astRegsInfo[0].astI2cData[8].u32Data = (u32Lines & 0xFF);
-        pstSnsState->astRegsInfo[0].astI2cData[9].u32Data = ((u32Lines & 0xFF00) >> 8);
-        pstSnsState->astRegsInfo[0].astI2cData[10].u32Data = ((u32Lines & 0xF0000) >> 16);
-    }
+//	    else
+//	    {
+//	        pstSnsState->astRegsInfo[0].astI2cData[8].u32Data = (u32Lines & 0xFF);
+//	        pstSnsState->astRegsInfo[0].astI2cData[9].u32Data = ((u32Lines & 0xFF00) >> 8);
+//	        pstSnsState->astRegsInfo[0].astI2cData[10].u32Data = ((u32Lines & 0xF0000) >> 16);
+//	    }
 
-    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
-    {
-        pstSnsState->u32FLStd = u32Lines * 2;
-
-        /*   RHS1 limitation:    4n + 1 and RHS1 <= 2 * BRL
-             RHS1(N+1)>= RHS1(N)+ 2*BRL - 2*VMAX + 2 ===> RHS1(N)-RHS1(N+1)<= 2*VMAX - 2*BRL -2*/
-
-        g_astov426State[ViPipe].u32RHS1_MAX = g_astov426State[ViPipe].u32BRL * 2 ;
-        g_astov426State[ViPipe].u32deltaRHS1 = u32Lines * 2 - g_astov426State[ViPipe].u32BRL * 2 - 2;
-    }
-    else
-    {
+//	    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
+//	    {
+//	        pstSnsState->u32FLStd = u32Lines * 2;
+//	
+//	        /*   RHS1 limitation:    4n + 1 and RHS1 <= 2 * BRL
+//	             RHS1(N+1)>= RHS1(N)+ 2*BRL - 2*VMAX + 2 ===> RHS1(N)-RHS1(N+1)<= 2*VMAX - 2*BRL -2*/
+//	
+//	        g_astov426State[ViPipe].u32RHS1_MAX = g_astov426State[ViPipe].u32BRL * 2 ;
+//	        g_astov426State[ViPipe].u32deltaRHS1 = u32Lines * 2 - g_astov426State[ViPipe].u32BRL * 2 - 2;
+//	    }
+//	    else
+//	    {
         pstSnsState->u32FLStd = u32Lines;
-    }
+//	    }
 
     pstAeSnsDft->f32Fps = f32Fps;
     pstAeSnsDft->u32LinesPer500ms = pstSnsState->u32FLStd * f32Fps / 2;
@@ -392,116 +387,116 @@ static HI_VOID cmos_inttime_update(VI_PIPE ViPipe, HI_U32 u32IntTime)
     OV426_SENSOR_GET_CTX(ViPipe, pstSnsState);
     CMOS_CHECK_POINTER_VOID(pstSnsState);
 
-    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
-    {
-        /* short exposure */
-        if (bFirst[ViPipe])
-        {
-            pstSnsState->au32WDRIntTime[0] = u32IntTime;
-            u32ShortIntTime[ViPipe] = u32IntTime;
-            bFirst[ViPipe] = HI_FALSE;
-        }
-
-        /* long exposure */
-        else
-        {
-            pstSnsState->au32WDRIntTime[1] = u32IntTime;
-            u32LongIntTime[ViPipe] = u32IntTime;
-
-            //printf("L = %d; S = %d\n",u32LongIntTime[ViPipe],u32ShortIntTime[ViPipe]);
-
-            u32SHR0[ViPipe] = pstSnsState->au32FL[1] - u32LongIntTime[ViPipe];
-            u32SHR1[ViPipe] = 9 ;
-
-            if (u32ShortIntTime[ViPipe] % 4 == 0)
-            {
-                u32SHR1[ViPipe] = 9 ;
-                u32RHS1[ViPipe] = u32ShortIntTime[ViPipe] + u32SHR1[ViPipe];
-            }
-            else if (u32ShortIntTime[ViPipe] % 4 == 2)
-            {
-                u32SHR1[ViPipe] = 11 ;
-                u32RHS1[ViPipe] = u32ShortIntTime[ViPipe] + u32SHR1[ViPipe];
-            }
-
-            if (u32RHS1[ViPipe] >= u32LastRHS1[ViPipe])
-            {
-            }
-            else if (u32RHS1[ViPipe] < u32LastRHS1[ViPipe])
-            {
-                u32deltaRHS1[ViPipe] = u32LastRHS1[ViPipe] - u32RHS1[ViPipe];
-                if (u32deltaRHS1[ViPipe] <= g_astov426State[ViPipe].u32deltaRHS1)
-                {
-                }
-                else
-                {
-                    if (u32ShortIntTime[ViPipe] % 4 == 0)
-                    {
-                        u32SHR1[ViPipe] = 9 + (u32deltaRHS1[ViPipe] - g_astov426State[ViPipe].u32deltaRHS1 + 2);
-                        u32RHS1[ViPipe] = u32LastRHS1[ViPipe] - (g_astov426State[ViPipe].u32deltaRHS1 - 2);
-                    }
-                    else if (u32ShortIntTime[ViPipe] % 4 == 2)
-                    {
-                        u32SHR1[ViPipe] = 11 + (u32deltaRHS1[ViPipe] - g_astov426State[ViPipe].u32deltaRHS1 + 2);
-                        u32RHS1[ViPipe] = u32LastRHS1[ViPipe] - (g_astov426State[ViPipe].u32deltaRHS1 - 2);
-                    }
-                }
-
-                if (u32SHR0[ViPipe] < u32LastRHS1[ViPipe] + 9)
-                {
-                    u32SHR0[ViPipe] = u32LastRHS1[ViPipe] + 9;
-                }
-                else
-                {
-                }
-            }
-            else
-            {
-            }
-
-            //deltaST = (HI_S32)(u32RHS1[ViPipe] - u32SHR1[ViPipe] - u32ShortIntTime[ViPipe]);
-            //deltaLT = (HI_S32)(pstSnsState->au32FL[1] - u32SHR0[ViPipe] - u32LongIntTime[ViPipe]);
-
-            //printf("SHR1= %d,RHS1=%d,deltaST=%d,SHR0=%d,deltaLT=%d\n",u32SHR1[ViPipe],u32RHS1[ViPipe],
-            //  deltaST,u32SHR0[ViPipe],deltaLT);
-
-            //Virtural Channel Mode
-            u32YOUTSIZE[ViPipe] = 2180 + (u32RHS1[ViPipe] - 3) / 2;
-            u32YOUTSIZE[ViPipe] = (u32YOUTSIZE[ViPipe] >= 0x1FFF) ? 0x1FFF : u32YOUTSIZE[ViPipe];
-
-            pstSnsState->astRegsInfo[0].astI2cData[0].u32Data = LOW_8BITS(u32SHR0[ViPipe]);
-            pstSnsState->astRegsInfo[0].astI2cData[1].u32Data = HIGH_8BITS(u32SHR0[ViPipe]);
-            pstSnsState->astRegsInfo[0].astI2cData[2].u32Data = HIGHER_4BITS(u32SHR0[ViPipe]);
-
-            pstSnsState->astRegsInfo[0].astI2cData[5].u32Data = LOW_8BITS(u32SHR1[ViPipe]);
-            pstSnsState->astRegsInfo[0].astI2cData[6].u32Data = HIGH_8BITS(u32SHR1[ViPipe]);
-            pstSnsState->astRegsInfo[0].astI2cData[7].u32Data = HIGHER_4BITS(u32SHR1[ViPipe]);
-
-            pstSnsState->astRegsInfo[0].astI2cData[11].u32Data = LOW_8BITS(u32RHS1[ViPipe]);
-            pstSnsState->astRegsInfo[0].astI2cData[12].u32Data = HIGH_8BITS(u32RHS1[ViPipe]);
-            pstSnsState->astRegsInfo[0].astI2cData[13].u32Data = HIGHER_4BITS(u32RHS1[ViPipe]);
-
-            pstSnsState->astRegsInfo[0].astI2cData[14].u32Data = (u32YOUTSIZE[ViPipe] & 0xFF);
-            pstSnsState->astRegsInfo[0].astI2cData[15].u32Data = ((u32YOUTSIZE[ViPipe] & 0x1F00) >> 8);
-
-            bFirst[ViPipe] = HI_TRUE;
-            u32LastRHS1[ViPipe] = u32RHS1[ViPipe];
-        }
-
-    }
-
-    else
-    {
+//	    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
+//	    {
+//	        /* short exposure */
+//	        if (bFirst[ViPipe])
+//	        {
+//	            pstSnsState->au32WDRIntTime[0] = u32IntTime;
+//	            u32ShortIntTime[ViPipe] = u32IntTime;
+//	            bFirst[ViPipe] = HI_FALSE;
+//	        }
+//	
+//	        /* long exposure */
+//	        else
+//	        {
+//	            pstSnsState->au32WDRIntTime[1] = u32IntTime;
+//	            u32LongIntTime[ViPipe] = u32IntTime;
+//	
+//	            //printf("L = %d; S = %d\n",u32LongIntTime[ViPipe],u32ShortIntTime[ViPipe]);
+//	
+//	            u32SHR0[ViPipe] = pstSnsState->au32FL[1] - u32LongIntTime[ViPipe];
+//	            u32SHR1[ViPipe] = 9 ;
+//	
+//	            if (u32ShortIntTime[ViPipe] % 4 == 0)
+//	            {
+//	                u32SHR1[ViPipe] = 9 ;
+//	                u32RHS1[ViPipe] = u32ShortIntTime[ViPipe] + u32SHR1[ViPipe];
+//	            }
+//	            else if (u32ShortIntTime[ViPipe] % 4 == 2)
+//	            {
+//	                u32SHR1[ViPipe] = 11 ;
+//	                u32RHS1[ViPipe] = u32ShortIntTime[ViPipe] + u32SHR1[ViPipe];
+//	            }
+//	
+//	            if (u32RHS1[ViPipe] >= u32LastRHS1[ViPipe])
+//	            {
+//	            }
+//	            else if (u32RHS1[ViPipe] < u32LastRHS1[ViPipe])
+//	            {
+//	                u32deltaRHS1[ViPipe] = u32LastRHS1[ViPipe] - u32RHS1[ViPipe];
+//	                if (u32deltaRHS1[ViPipe] <= g_astov426State[ViPipe].u32deltaRHS1)
+//	                {
+//	                }
+//	                else
+//	                {
+//	                    if (u32ShortIntTime[ViPipe] % 4 == 0)
+//	                    {
+//	                        u32SHR1[ViPipe] = 9 + (u32deltaRHS1[ViPipe] - g_astov426State[ViPipe].u32deltaRHS1 + 2);
+//	                        u32RHS1[ViPipe] = u32LastRHS1[ViPipe] - (g_astov426State[ViPipe].u32deltaRHS1 - 2);
+//	                    }
+//	                    else if (u32ShortIntTime[ViPipe] % 4 == 2)
+//	                    {
+//	                        u32SHR1[ViPipe] = 11 + (u32deltaRHS1[ViPipe] - g_astov426State[ViPipe].u32deltaRHS1 + 2);
+//	                        u32RHS1[ViPipe] = u32LastRHS1[ViPipe] - (g_astov426State[ViPipe].u32deltaRHS1 - 2);
+//	                    }
+//	                }
+//	
+//	                if (u32SHR0[ViPipe] < u32LastRHS1[ViPipe] + 9)
+//	                {
+//	                    u32SHR0[ViPipe] = u32LastRHS1[ViPipe] + 9;
+//	                }
+//	                else
+//	                {
+//	                }
+//	            }
+//	            else
+//	            {
+//	            }
+//	
+//	            //deltaST = (HI_S32)(u32RHS1[ViPipe] - u32SHR1[ViPipe] - u32ShortIntTime[ViPipe]);
+//	            //deltaLT = (HI_S32)(pstSnsState->au32FL[1] - u32SHR0[ViPipe] - u32LongIntTime[ViPipe]);
+//	
+//	            //printf("SHR1= %d,RHS1=%d,deltaST=%d,SHR0=%d,deltaLT=%d\n",u32SHR1[ViPipe],u32RHS1[ViPipe],
+//	            //  deltaST,u32SHR0[ViPipe],deltaLT);
+//	
+//	            //Virtural Channel Mode
+//	            u32YOUTSIZE[ViPipe] = 2180 + (u32RHS1[ViPipe] - 3) / 2;
+//	            u32YOUTSIZE[ViPipe] = (u32YOUTSIZE[ViPipe] >= 0x1FFF) ? 0x1FFF : u32YOUTSIZE[ViPipe];
+//	
+//	            pstSnsState->astRegsInfo[0].astI2cData[0].u32Data = LOW_8BITS(u32SHR0[ViPipe]);
+//	            pstSnsState->astRegsInfo[0].astI2cData[1].u32Data = HIGH_8BITS(u32SHR0[ViPipe]);
+//	            pstSnsState->astRegsInfo[0].astI2cData[2].u32Data = HIGHER_4BITS(u32SHR0[ViPipe]);
+//	
+//	            pstSnsState->astRegsInfo[0].astI2cData[5].u32Data = LOW_8BITS(u32SHR1[ViPipe]);
+//	            pstSnsState->astRegsInfo[0].astI2cData[6].u32Data = HIGH_8BITS(u32SHR1[ViPipe]);
+//	            pstSnsState->astRegsInfo[0].astI2cData[7].u32Data = HIGHER_4BITS(u32SHR1[ViPipe]);
+//	
+//	            pstSnsState->astRegsInfo[0].astI2cData[11].u32Data = LOW_8BITS(u32RHS1[ViPipe]);
+//	            pstSnsState->astRegsInfo[0].astI2cData[12].u32Data = HIGH_8BITS(u32RHS1[ViPipe]);
+//	            pstSnsState->astRegsInfo[0].astI2cData[13].u32Data = HIGHER_4BITS(u32RHS1[ViPipe]);
+//	
+//	            pstSnsState->astRegsInfo[0].astI2cData[14].u32Data = (u32YOUTSIZE[ViPipe] & 0xFF);
+//	            pstSnsState->astRegsInfo[0].astI2cData[15].u32Data = ((u32YOUTSIZE[ViPipe] & 0x1F00) >> 8);
+//	
+//	            bFirst[ViPipe] = HI_TRUE;
+//	            u32LastRHS1[ViPipe] = u32RHS1[ViPipe];
+//	        }
+//	
+//	    }
+//	
+//	    else
+//	    {
         u32Value = pstSnsState->au32FL[0] - u32IntTime;
         u32Value = MIN(u32Value, 0xfffff);
         u32Value = MIN(MAX(u32Value, 5), pstSnsState->au32FL[0] - 2);
 
-        pstSnsState->astRegsInfo[0].astI2cData[0].u32Data = LOW_8BITS(u32Value);
-        pstSnsState->astRegsInfo[0].astI2cData[1].u32Data = HIGH_8BITS(u32Value);
-        pstSnsState->astRegsInfo[0].astI2cData[2].u32Data = HIGHER_4BITS(u32Value);
+        pstSnsState->astRegsInfo[0].astI2cData[2].u32Data = LOW_8BITS(u32Value); // by andreas
+        pstSnsState->astRegsInfo[0].astI2cData[3].u32Data = HIGH_8BITS(u32Value); // by andreas
+        pstSnsState->astRegsInfo[0].astI2cData[4].u32Data = HIGHER_4BITS(u32Value); // by andreas
 
         bFirst[ViPipe] = HI_TRUE;
-    }
+//	    }
 
     return;
 
@@ -800,11 +795,11 @@ static HI_S32 cmos_get_awb_default(VI_PIPE ViPipe, AWB_SENSOR_DEFAULT_S *pstAwbS
             memcpy(&pstAwbSnsDft->stCcm, &g_stAwbCcm, sizeof(AWB_CCM_S));
             memcpy(&pstAwbSnsDft->stAgcTbl, &g_stAwbAgcTable, sizeof(AWB_AGC_TABLE_S));
             break;
-        case WDR_MODE_2To1_LINE:
-            memcpy(&pstAwbSnsDft->stCcm,    &g_stAwbCcmFsWdr, sizeof(AWB_CCM_S));
-            memcpy(&pstAwbSnsDft->stAgcTbl, &g_stAwbAgcTableFSWDR, sizeof(AWB_AGC_TABLE_S));
-
-            break;
+//	        case WDR_MODE_2To1_LINE:
+//	            memcpy(&pstAwbSnsDft->stCcm,    &g_stAwbCcmFsWdr, sizeof(AWB_CCM_S));
+//	            memcpy(&pstAwbSnsDft->stAgcTbl, &g_stAwbAgcTableFSWDR, sizeof(AWB_AGC_TABLE_S));
+//	
+//	            break;
     }
     pstAwbSnsDft->u16InitRgain = g_au16InitWBGain[ViPipe][0];
     pstAwbSnsDft->u16InitGgain = g_au16InitWBGain[ViPipe][1];
@@ -890,34 +885,35 @@ static HI_S32 cmos_get_isp_default(VI_PIPE ViPipe, ISP_CMOS_DEFAULT_S *pstDef)
             pstDef->pstLdci                  = &g_stIspLdci;
             memcpy(&pstDef->stNoiseCalibration, &g_stIspNoiseCalibratio, sizeof(ISP_CMOS_NOISE_CALIBRATION_S));
             break;
-        case WDR_MODE_2To1_LINE:
-            pstDef->unKey.bit1Demosaic       = 1;
-            pstDef->pstDemosaic              = &g_stIspDemosaicWdr;
-            pstDef->unKey.bit1Sharpen        = 1;
-            pstDef->pstSharpen               = &g_stIspYuvSharpenWdr;
-            pstDef->unKey.bit1Drc            = 1;
-            pstDef->pstDrc                   = &g_stIspDRCWDR;
-            pstDef->unKey.bit1Ca       = 1;
-            pstDef->pstCa              = &g_stIspCAWDR;
-            pstDef->unKey.bit1Gamma          = 1;
-            pstDef->pstGamma                 = &g_stIspGammaFSWDR;
-            pstDef->unKey.bit1PreGamma       = 0;
-            pstDef->pstPreGamma              = &g_stPreGamma;
-            pstDef->unKey.bit1BayerNr        = 1;
-            pstDef->pstBayerNr               = &g_stIspBayerNrWdr2To1;
-            pstDef->unKey.bit1Ge             = 1;
-            pstDef->pstGe                    = &g_stIspWdrGe;
-            pstDef->unKey.bit1AntiFalseColor = 1;
-            pstDef->pstAntiFalseColor        = &g_stIspWdrAntiFalseColor;
-            pstDef->unKey.bit1Ldci           = 1;
-            pstDef->pstLdci                  = &g_stIspWdrLdci;
-            pstDef->stWdrSwitchAttr.au32ExpRatio[0] = 0x40;
-            memcpy(&pstDef->stNoiseCalibration, &g_stIspNoiseCalibratio, sizeof(ISP_CMOS_NOISE_CALIBRATION_S));
-            break;
+//	        case WDR_MODE_2To1_LINE:
+//	            pstDef->unKey.bit1Demosaic       = 1;
+//	            pstDef->pstDemosaic              = &g_stIspDemosaicWdr;
+//	            pstDef->unKey.bit1Sharpen        = 1;
+//	            pstDef->pstSharpen               = &g_stIspYuvSharpenWdr;
+//	            pstDef->unKey.bit1Drc            = 1;
+//	            pstDef->pstDrc                   = &g_stIspDRCWDR;
+//	            pstDef->unKey.bit1Ca       = 1;
+//	            pstDef->pstCa              = &g_stIspCAWDR;
+//	            pstDef->unKey.bit1Gamma          = 1;
+//	            pstDef->pstGamma                 = &g_stIspGammaFSWDR;
+//	            pstDef->unKey.bit1PreGamma       = 0;
+//	            pstDef->pstPreGamma              = &g_stPreGamma;
+//	            pstDef->unKey.bit1BayerNr        = 1;
+//	            pstDef->pstBayerNr               = &g_stIspBayerNrWdr2To1;
+//	            pstDef->unKey.bit1Ge             = 1;
+//	            pstDef->pstGe                    = &g_stIspWdrGe;
+//	            pstDef->unKey.bit1AntiFalseColor = 1;
+//	            pstDef->pstAntiFalseColor        = &g_stIspWdrAntiFalseColor;
+//	            pstDef->unKey.bit1Ldci           = 1;
+//	            pstDef->pstLdci                  = &g_stIspWdrLdci;
+//	            pstDef->stWdrSwitchAttr.au32ExpRatio[0] = 0x40;
+//	            memcpy(&pstDef->stNoiseCalibration, &g_stIspNoiseCalibratio, sizeof(ISP_CMOS_NOISE_CALIBRATION_S));
+//	            break;
     }
 
-    pstDef->stSensorMaxResolution.u32MaxWidth  = 400;
-    pstDef->stSensorMaxResolution.u32MaxHeight = 400;
+    pstDef->stSensorMaxResolution.u32MaxWidth  = 400; // add by andreas
+    pstDef->stSensorMaxResolution.u32MaxHeight = 400; // add by andreas
+    
     pstDef->stSensorMode.u32SensorID = OV426_ID;
     pstDef->stSensorMode.u8SensorMode = pstSnsState->u8ImgMode;
 
@@ -954,20 +950,24 @@ static HI_S32 cmos_get_isp_black_level(VI_PIPE ViPipe, ISP_CMOS_BLACK_LEVEL_S *p
 
     /* Don't need to update black level when iso change */
     pstBlackLevel->bUpdate = HI_FALSE;
-    if (WDR_MODE_NONE == pstSnsState->enWDRMode)
-    {
-        for (i = 0; i < 4; i++)
-        {
-            pstBlackLevel->au16BlackLevel[i] = 64; /*12bit,0x40*/
-        }
-    }
-    else if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
-    {
-        for (i = 0; i < 4; i++)
-        {
-            pstBlackLevel->au16BlackLevel[i] = 256; /*10bit,0x10s0*/
-        }
-    }
+//	    if (WDR_MODE_NONE == pstSnsState->enWDRMode)
+//	    {
+//	        for (i = 0; i < 4; i++)
+//	        {
+//	            pstBlackLevel->au16BlackLevel[i] = 64; /*12bit,0x40*/
+//	        }
+//	    }
+//	    else if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
+//	    {
+//	        for (i = 0; i < 4; i++)
+//	        {
+//	            pstBlackLevel->au16BlackLevel[i] = 256; /*10bit,0x100*/
+//	        }
+//	    }
+    pstBlackLevel->au16BlackLevel[0] = 0x40;
+    pstBlackLevel->au16BlackLevel[1] = 0x40;
+    pstBlackLevel->au16BlackLevel[2] = 0x40;
+    pstBlackLevel->au16BlackLevel[3] = 0x40;
 
     return HI_SUCCESS;
 }
@@ -980,11 +980,23 @@ static HI_VOID cmos_set_pixel_detect(VI_PIPE ViPipe, HI_BOOL bEnable)
     OV426_SENSOR_GET_CTX(ViPipe, pstSnsState);
     CMOS_CHECK_POINTER_VOID(pstSnsState);
 
-    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
-    {
-        return;
-    }
-    else
+//	    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
+//	    {
+//	        return;
+//	    }
+//	    else
+//	    {
+//	        if (Ov426_400x400_12bit_30fps == pstSnsState->u8ImgMode)
+//	        {
+//	            u32FullLines_5Fps = (OV426_VMAX_12bit_LINEAR * 30) / 5;
+//	        }
+//	        else
+//	        {
+//	            return;
+//	        }
+//	    }
+
+    if (WDR_MODE_NONE == pstSnsState->enWDRMode)
     {
         if (Ov426_400x400_12bit_30fps == pstSnsState->u8ImgMode)
         {
@@ -995,19 +1007,24 @@ static HI_VOID cmos_set_pixel_detect(VI_PIPE ViPipe, HI_BOOL bEnable)
             return;
         }
     }
+    else
+    {
+        return;
+    }
 
-    u32MaxIntTime_5Fps = u32FullLines_5Fps - 4;
+    u32MaxIntTime_5Fps = u32FullLines_5Fps - 4; // why?
 
     if (bEnable) /* setup for ISP pixel calibration mode */
     {
         ov426_write_register(ViPipe, VMAX_ADDR_L, LOW_8BITS(u32FullLines_5Fps));
         ov426_write_register(ViPipe, VMAX_ADDR_H, HIGH_8BITS(u32FullLines_5Fps));
 
-        ov426_write_register(ViPipe, EXPOSURE_TIME_LONG_H, HIGH_8BITS(u32MaxIntTime_5Fps));    /* shutter */
-        ov426_write_register(ViPipe, EXPOSURE_TIME_LONG_L, LOW_8BITS(u32MaxIntTime_5Fps));
+        ov426_write_register(ViPipe, AEC_PK_EXPO_L, ((u32MaxIntTime_5Fps & 0xF)<<4));    /* shutter */
+        ov426_write_register(ViPipe, AEC_PK_EXPO_M, ((u32MaxIntTime_5Fps & 0xFFF)>>4));
+        ov426_write_register(ViPipe, AEC_PK_EXPO_H, (u32MaxIntTime_5Fps >> 12));
 
-        ov426_write_register(ViPipe, AGAIN_H, 0x00); //gain
-        ov426_write_register(ViPipe, AGAIN_L, 0x90);
+        ov426_write_register(ViPipe, GAIN_ADDR_H, 0x00); //gain
+        ov426_write_register(ViPipe, GAIN_ADDR_L, 0x90);
     }
     else /* setup for ISP 'normal mode' */
     {
@@ -1036,13 +1053,6 @@ static HI_S32 cmos_set_wdr_mode(VI_PIPE ViPipe, HI_U8 u8Mode)
             ISP_TRACE(HI_DBG_ERR, "linear mode\n");
             break;
 
-//        case WDR_MODE_2To1_LINE:
-//            pstSnsState->enWDRMode = WDR_MODE_2To1_LINE;
-//            pstSnsState->u32FLStd = IMX334_VMAX_8M_30FPS_12BIT_2TO1_WDR * 2;
-//            g_astov426State[ViPipe].u32BRL  = 2200;
-//            ISP_TRACE(HI_DBG_ERR, "2to1 line WDR 4k mode(60fps->30fps)\n");
-//            break;
-
         default:
             ISP_TRACE(HI_DBG_ERR, "NOT support this mode!\n");
             return HI_FAILURE;
@@ -1070,12 +1080,12 @@ static HI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_REGS_INFO_S *pstSns
         pstSnsState->astRegsInfo[0].enSnsType = ISP_SNS_I2C_TYPE;
         pstSnsState->astRegsInfo[0].unComBus.s8I2cDev = g_aunOv426BusInfo[ViPipe].s8I2cDev;
         pstSnsState->astRegsInfo[0].u8Cfg2ValidDelayMax = 2;
-        pstSnsState->astRegsInfo[0].u32RegNum = 0;
+        pstSnsState->astRegsInfo[0].u32RegNum = 7;
 
-        if ((WDR_MODE_2To1_LINE == pstSnsState->enWDRMode) || (WDR_MODE_2To1_FRAME == pstSnsState->enWDRMode) || (WDR_MODE_2To1_FRAME_FULL_RATE == pstSnsState->enWDRMode))
-        {
-            pstSnsState->astRegsInfo[0].u32RegNum += 6;
-        }
+//	        if ((WDR_MODE_2To1_LINE == pstSnsState->enWDRMode) || (WDR_MODE_2To1_FRAME == pstSnsState->enWDRMode) || (WDR_MODE_2To1_FRAME_FULL_RATE == pstSnsState->enWDRMode))
+//	        {
+//	            pstSnsState->astRegsInfo[0].u32RegNum += 6;
+//	        }
 
         for (i = 0; i < pstSnsState->astRegsInfo[0].u32RegNum; i++)
         {
@@ -1089,33 +1099,31 @@ static HI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_REGS_INFO_S *pstSns
         pstSnsState->astRegsInfo[0].astI2cData[1].u8DelayFrmNum = 0;
         pstSnsState->astRegsInfo[0].astI2cData[1].u32RegAddr = VMAX_ADDR_H;        // Vmax
         pstSnsState->astRegsInfo[0].astI2cData[2].u8DelayFrmNum = 0;
-        pstSnsState->astRegsInfo[0].astI2cData[2].u32RegAddr = EXPOSURE_TIME_LONG_L;        // Long shutter
+        pstSnsState->astRegsInfo[0].astI2cData[2].u32RegAddr = AEC_PK_EXPO_L;        // shutter
         pstSnsState->astRegsInfo[0].astI2cData[3].u8DelayFrmNum = 0;
-        pstSnsState->astRegsInfo[0].astI2cData[3].u32RegAddr = EXPOSURE_TIME_LONG_H;        // Long shutter
+        pstSnsState->astRegsInfo[0].astI2cData[3].u32RegAddr = AEC_PK_EXPO_M;        // shutter
         pstSnsState->astRegsInfo[0].astI2cData[4].u8DelayFrmNum = 0;
-        pstSnsState->astRegsInfo[0].astI2cData[4].u32RegAddr = AGAIN_L;        // Again
+        pstSnsState->astRegsInfo[0].astI2cData[4].u32RegAddr = AEC_PK_EXPO_H;        // shutter
         pstSnsState->astRegsInfo[0].astI2cData[5].u8DelayFrmNum = 0;
-        pstSnsState->astRegsInfo[0].astI2cData[5].u32RegAddr = AGAIN_H;        // Again
+        pstSnsState->astRegsInfo[0].astI2cData[5].u32RegAddr = GAIN_ADDR_L;        // gain
         pstSnsState->astRegsInfo[0].astI2cData[6].u8DelayFrmNum = 0;
-        pstSnsState->astRegsInfo[0].astI2cData[6].u32RegAddr = DGAIN_L;     // Dgain
-        pstSnsState->astRegsInfo[0].astI2cData[7].u8DelayFrmNum = 0;
-        pstSnsState->astRegsInfo[0].astI2cData[7].u32RegAddr = DGAIN_H;     // Dgain
+        pstSnsState->astRegsInfo[0].astI2cData[6].u32RegAddr = GAIN_ADDR_H;     // 
 
-        if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
-        {
-            pstSnsState->astRegsInfo[0].astI2cData[8].u8DelayFrmNum = 0;
-            pstSnsState->astRegsInfo[0].astI2cData[8].u32RegAddr = EXPOSURE_TIME_SHORT_L;     // Short shutter
-            pstSnsState->astRegsInfo[0].astI2cData[9].u8DelayFrmNum = 0;
-            pstSnsState->astRegsInfo[0].astI2cData[9].u32RegAddr = EXPOSURE_TIME_SHORT_H;     // Short shutter
-            pstSnsState->astRegsInfo[0].astI2cData[10].u8DelayFrmNum = 0;
-            pstSnsState->astRegsInfo[0].astI2cData[10].u32RegAddr = SHORT_AGAIN_L;     // Short Again
-            pstSnsState->astRegsInfo[0].astI2cData[11].u8DelayFrmNum = 0;
-            pstSnsState->astRegsInfo[0].astI2cData[11].u32RegAddr = SHORT_AGAIN_H;     // Short Again
-            pstSnsState->astRegsInfo[0].astI2cData[12].u8DelayFrmNum = 0;
-            pstSnsState->astRegsInfo[0].astI2cData[12].u32RegAddr = SHORT_DGAIN_L;     // Short Dgain
-            pstSnsState->astRegsInfo[0].astI2cData[13].u8DelayFrmNum = 0;
-            pstSnsState->astRegsInfo[0].astI2cData[13].u32RegAddr = SHORT_DGAIN_H;     // Short Dgain
-        }
+//	        if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode)
+//	        {
+//	            pstSnsState->astRegsInfo[0].astI2cData[8].u8DelayFrmNum = 0;
+//	            pstSnsState->astRegsInfo[0].astI2cData[8].u32RegAddr = EXPOSURE_TIME_SHORT_L;     // Short shutter
+//	            pstSnsState->astRegsInfo[0].astI2cData[9].u8DelayFrmNum = 0;
+//	            pstSnsState->astRegsInfo[0].astI2cData[9].u32RegAddr = EXPOSURE_TIME_SHORT_H;     // Short shutter
+//	            pstSnsState->astRegsInfo[0].astI2cData[10].u8DelayFrmNum = 0;
+//	            pstSnsState->astRegsInfo[0].astI2cData[10].u32RegAddr = SHORT_AGAIN_L;     // Short Again
+//	            pstSnsState->astRegsInfo[0].astI2cData[11].u8DelayFrmNum = 0;
+//	            pstSnsState->astRegsInfo[0].astI2cData[11].u32RegAddr = SHORT_AGAIN_H;     // Short Again
+//	            pstSnsState->astRegsInfo[0].astI2cData[12].u8DelayFrmNum = 0;
+//	            pstSnsState->astRegsInfo[0].astI2cData[12].u32RegAddr = SHORT_DGAIN_L;     // Short Dgain
+//	            pstSnsState->astRegsInfo[0].astI2cData[13].u8DelayFrmNum = 0;
+//	            pstSnsState->astRegsInfo[0].astI2cData[13].u32RegAddr = SHORT_DGAIN_H;     // Short Dgain
+//	        }
         pstSnsState->bSyncInit = HI_TRUE;
     }
     else
@@ -1134,23 +1142,23 @@ static HI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_REGS_INFO_S *pstSns
         }
     }
 
-    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode )
-    {
-        if (pstSnsState->au32FL[1] > pstSnsState->au32FL[0])
-        {
-            pstSnsState->astRegsInfo[0].astI2cData[0].u8DelayFrmNum = 2;
-            pstSnsState->astRegsInfo[0].astI2cData[1].u8DelayFrmNum = 2;
-        }
-        else if (pstSnsState->au32FL[1] < pstSnsState->au32FL[0])
-        {
-            pstSnsState->astRegsInfo[0].astI2cData[0].u8DelayFrmNum = 0;
-            pstSnsState->astRegsInfo[0].astI2cData[1].u8DelayFrmNum = 0;
-        }
-        else
-        {
-            //do nothing
-        }
-    }
+//	    if (WDR_MODE_2To1_LINE == pstSnsState->enWDRMode )
+//	    {
+//	        if (pstSnsState->au32FL[1] > pstSnsState->au32FL[0])
+//	        {
+//	            pstSnsState->astRegsInfo[0].astI2cData[0].u8DelayFrmNum = 2;
+//	            pstSnsState->astRegsInfo[0].astI2cData[1].u8DelayFrmNum = 2;
+//	        }
+//	        else if (pstSnsState->au32FL[1] < pstSnsState->au32FL[0])
+//	        {
+//	            pstSnsState->astRegsInfo[0].astI2cData[0].u8DelayFrmNum = 0;
+//	            pstSnsState->astRegsInfo[0].astI2cData[1].u8DelayFrmNum = 0;
+//	        }
+//	        else
+//	        {
+//	            //do nothing
+//	        }
+//	    }
 
     pstSnsRegsInfo->bConfig = HI_FALSE;
     memcpy(pstSnsRegsInfo, &pstSnsState->astRegsInfo[0], sizeof(ISP_SNS_REGS_INFO_S));
@@ -1438,4 +1446,4 @@ ISP_SNS_OBJ_S stSnsOv426Obj =
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#endif /* __IMX334_CMOS_H_ */
+#endif /* __OV426_CMOS_H_ */

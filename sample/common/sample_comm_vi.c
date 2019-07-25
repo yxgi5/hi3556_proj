@@ -1220,6 +1220,10 @@ static input_mode_t SAMPLE_COMM_VI_GetSnsInputMode(SAMPLE_SNS_TYPE_E enSnsType)
             enInputMode = INPUT_MODE_SLVS;
             break;
 
+        case OMNIVISION_OV426_DC_160K_30FPS:
+            enInputMode = INPUT_MODE_CMOS;
+            break;
+
         default:
             enInputMode = INPUT_MODE_MIPI;
             break;

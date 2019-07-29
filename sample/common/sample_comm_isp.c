@@ -195,6 +195,15 @@ ISP_PUB_ATTR_S ISP_PUB_ATTR_OV426_160K_30FPS =
     0,
 };
 
+ISP_PUB_ATTR_S ISP_PUB_ATTR_OV9712_720P_30FPS =
+{
+    {0, 0, 1280, 720},
+    {1296, 818}, // P30 @ ov9712.pdf
+    30,
+    BAYER_BGGR,
+    WDR_MODE_NONE,
+    0,
+};
 
 HI_S32 SAMPLE_COMM_ISP_GetIspAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, ISP_PUB_ATTR_S* pstPubAttr)
 {
@@ -261,6 +270,10 @@ HI_S32 SAMPLE_COMM_ISP_GetIspAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, ISP_PUB_ATTR
             memcpy(pstPubAttr, &ISP_PUB_ATTR_OV426_160K_30FPS, sizeof(ISP_PUB_ATTR_S));
             break;
 
+        case OMNIVISION_OV9712_DC_720P_30FPS:
+            memcpy(pstPubAttr, &ISP_PUB_ATTR_OV9712_720P_30FPS, sizeof(ISP_PUB_ATTR_S));
+            break;
+
         default:
             memcpy(pstPubAttr, &ISP_PUB_ATTR_IMX477_8M_30FPS, sizeof(ISP_PUB_ATTR_S));
             break;
@@ -304,6 +317,9 @@ ISP_SNS_OBJ_S* SAMPLE_COMM_ISP_GetSnsObj(HI_U32 u32SnsId)
 
         case OMNIVISION_OV426_DC_160K_30FPS:
             return &stSnsOv426Obj;
+
+        case OMNIVISION_OV9712_DC_720P_30FPS:
+            return &stSnsOv9712Obj;
 
         default:
             return HI_NULL;

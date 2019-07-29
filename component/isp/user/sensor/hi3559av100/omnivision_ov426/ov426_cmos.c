@@ -286,7 +286,7 @@ static HI_VOID cmos_fps_set(VI_PIPE ViPipe, HI_FLOAT f32Fps, AE_SENSOR_DEFAULT_S
             u32MaxFps = 30;
             if ((f32Fps <= 30) && (f32Fps >= 0.07))
             {
-                u32Lines = Ov426_400x400_12bit_30fps * u32MaxFps / DIV_0_TO_1_FLOAT(f32Fps);
+                u32Lines = OV426_VMAX_12bit_LINEAR * u32MaxFps / DIV_0_TO_1_FLOAT(f32Fps);
             }
             else
             {
@@ -573,7 +573,6 @@ static HI_VOID cmos_dgain_calc_table(VI_PIPE ViPipe, HI_U32 *pu32DgainLin, HI_U3
 
     return;
 }
-
 
 static HI_VOID cmos_gains_update(VI_PIPE ViPipe, HI_U32 u32Again, HI_U32 u32Dgain)
 {

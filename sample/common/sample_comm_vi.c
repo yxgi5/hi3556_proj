@@ -1017,6 +1017,58 @@ VI_DEV_ATTR_S DEV_ATTR_OV426_DC_160K_BASE =
     DATA_RATE_X1
 }
 
+VI_DEV_ATTR_S DEV_ATTR_OV9712_DC_720P_BASE =
+{
+    /* interface mode */
+    VI_MODE_DIGITAL_CAMERA,
+    /* multiplex mode */
+    VI_WORK_MODE_1Multiplex,
+    /* ComponentMask */
+    {0xFFF00000,    0x0},
+    /* progessive or interleaving */
+    VI_SCAN_PROGRESSIVE,
+    /*AdChnId*/
+    {-1, -1, -1, -1},
+    /*enDataSeq, only support yuv*/
+    VI_DATA_SEQ_YUYV,
+    
+    /* synchronization information */
+    {
+    /*port_vsync   port_vsync_neg     port_hsync        port_hsync_neg        */
+    VI_VSYNC_PULSE, VI_VSYNC_NEG_HIGH, VI_HSYNC_VALID_SINGNAL,VI_HSYNC_NEG_HIGH,VI_VSYNC_VALID_SINGAL,VI_VSYNC_VALID_NEG_LOW,
+
+    /*hsync_hfb    hsync_act    hsync_hhb*/
+    {370,            1280,        0
+    /*vsync0_vhb vsync0_act vsync0_hhb*/
+     6,           720,        6,
+    /*vsync1_vhb vsync1_act vsync1_hhb*/
+     0,            0,            0}
+    },
+    /* input data type */
+    VI_DATA_TYPE_RGB,
+    /* Data Reverse */
+    HI_FALSE,
+    /* Input size */
+    {1280 , 720},
+    /* Attribute of BAS */
+    {
+        {
+            {1280 , 720},
+
+        },
+        {
+            VI_REPHASE_MODE_NONE,
+            VI_REPHASE_MODE_NONE
+        }
+    },
+    /* Attribute of WDR */
+    {
+        WDR_MODE_NONE,
+        720
+    },
+    DATA_RATE_X1
+}
+
 
 VI_PIPE_ATTR_S PIPE_ATTR_1920x1080_RAW12_420_3DNR_RFR =
 {
@@ -1127,6 +1179,24 @@ VI_PIPE_ATTR_S PIPE_ATTR_400x400_RAW12_420_3DNR_RFR =
     { -1, -1}
 };
 
+VI_PIPE_ATTR_S PIPE_ATTR_1280x720_RAW12_420_3DNR_RFR =
+{
+    VI_PIPE_BYPASS_NONE, HI_FALSE,HI_FALSE,
+    1280, 720,
+    PIXEL_FORMAT_RGB_BAYER_12BPP,
+    COMPRESS_MODE_LINE,
+    DATA_BITWIDTH_12,
+    HI_TRUE,
+    {
+        PIXEL_FORMAT_YVU_SEMIPLANAR_420,
+        DATA_BITWIDTH_10,
+        VI_NR_REF_FROM_RFR,
+        COMPRESS_MODE_NONE
+    },
+    HI_FALSE,
+    { -1, -1}
+};
+
 
 VI_CHN_ATTR_S CHN_ATTR_1920x1080_420_SDR8_LINEAR =
 {
@@ -1188,6 +1258,18 @@ VI_CHN_ATTR_S CHN_ATTR_400x400_420_SDR8_LINEAR =
     { -1, -1}
 };
 
+VI_CHN_ATTR_S CHN_ATTR_1280x720_420_SDR8_LINEAR =
+{
+    {1280, 720},
+    PIXEL_FORMAT_YVU_SEMIPLANAR_420,
+    DYNAMIC_RANGE_SDR8,
+    VIDEO_FORMAT_LINEAR,
+    COMPRESS_MODE_NONE,
+    0,      0,
+    0,
+    { -1, -1}
+};
+
 
 HI_BOOL IsSensorInput(SAMPLE_SNS_TYPE_E enSnsType)
 {
@@ -1221,6 +1303,7 @@ static input_mode_t SAMPLE_COMM_VI_GetSnsInputMode(SAMPLE_SNS_TYPE_E enSnsType)
             break;
 
         case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS:
             enInputMode = INPUT_MODE_CMOS;
             break;
 
@@ -2172,6 +2255,10 @@ HI_S32 SAMPLE_COMM_VI_GetDevAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_DEV_ATTR_S
             hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_OV426_DC_160K_BASE, sizeof(VI_DEV_ATTR_S));
             break;
 
+        case OMNIVISION_OV426_DC_160K_30FPS:
+            hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_OV9712_DC_720P_BASE, sizeof(VI_DEV_ATTR_S));
+            break;
+
         default:
             hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_IMX477_8M_BASE, sizeof(VI_DEV_ATTR_S));
     }
@@ -2237,7 +2324,12 @@ HI_S32 SAMPLE_COMM_VI_GetPipeAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_PIPE_ATTR
 
         case OMNIVISION_OV426_DC_160K_30FPS:
             hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_400x400_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
+            break;
 
+        case OMNIVISION_OV9712_DC_720P_30FPS:
+            hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_1280x720_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
+            break;
+            
         default:
             hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_3840x2160_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
     }
@@ -2299,6 +2391,10 @@ HI_S32 SAMPLE_COMM_VI_GetChnAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_CHN_ATTR_S
 
         case OMNIVISION_OV426_DC_160K_30FPS:
             hi_memcpy(pstChnAttr, sizeof(VI_CHN_ATTR_S), &CHN_ATTR_400x400_420_SDR8_LINEAR, sizeof(VI_CHN_ATTR_S));
+            break;
+
+        case OMNIVISION_OV9712_DC_720P_30FPS:
+            hi_memcpy(pstChnAttr, sizeof(VI_CHN_ATTR_S), &CHN_ATTR_1280x720_420_SDR8_LINEAR, sizeof(VI_CHN_ATTR_S));
             break;
 
         default:
@@ -3715,6 +3811,10 @@ HI_S32 SAMPLE_COMM_VI_GetSizeBySensor(SAMPLE_SNS_TYPE_E enMode, PIC_SIZE_E* penS
         case OMNIVISION_OV426_DC_160K_30FPS:
             *penSize = PIC_400x400;
             break;
+
+        case OMNIVISION_OV9712_DC_720P_30FPS:
+            *penSize = PIC_720P;
+            break;
             
         default:
             *penSize = PIC_3840x2160;
@@ -3750,6 +3850,7 @@ HI_S32 SAMPLE_COMM_VI_GetFrameRateBySensor(SAMPLE_SNS_TYPE_E enMode, HI_U32* pu3
         case SONY_IMX277_SLVS_8M_30FPS_12BIT:
         case SONY_IMX277_SLVS_12M_30FPS_12BIT:
         case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS:
             *pu32FrameRate = 30;
             break;
 

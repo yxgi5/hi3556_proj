@@ -58,6 +58,7 @@ void SAMPLE_VIO_Usage(char* sPrgNm)
     printf("\t 5)online   SDR8     VI - VO - HDMI.             Embeded isp, FreeRotation.\n");
     printf("\t 6)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+SPREAD.\n");
     printf("\t 7)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+SPREAD.\n");
+	printf("\t 8)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+SPREAD.\n");
     
     printf("intf:\n");
     printf("\t 0) vo HDMI output, default.\n");
@@ -2071,6 +2072,210 @@ HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
     return s32Ret;
 }
 
+HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
+{
+    HI_S32             s32Ret;
+    VI_DEV             ViDev               = 0;
+    VI_PIPE            ViPipe              = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
+    VI_CHN             ViChn               = 0;
+    HI_S32             s32WorkSnsId        = 0;
+    VO_DEV             VoDev               = SAMPLE_VO_DEV_DHD0;
+    VO_CHN             VoChn               = 0;
+    SIZE_S             stSize;
+    VB_CONFIG_S        stVbConf;
+    PIC_SIZE_E         enPicSize           = PIC_720P;
+    HI_U32             u32BlkSize;
+    VI_LDC_ATTR_S      stLDCAttr           = {0} ;
+    SPREAD_ATTR_S      stSpreadAttr        = {0};
+    SAMPLE_VI_CONFIG_S stViConfig  = {0};
+    SAMPLE_VO_CONFIG_S stVoConfig  = {0};
+    combo_dev_t          ComboDev;
+
+    DYNAMIC_RANGE_E    enDynamicRange = DYNAMIC_RANGE_SDR8;
+    PIXEL_FORMAT_E     enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    VIDEO_FORMAT_E     enVideoFormat  = VIDEO_FORMAT_LINEAR;
+    COMPRESS_MODE_E    enCompressMode = COMPRESS_MODE_NONE;
+    VI_VPSS_MODE_E     enMastPipeMode = VI_ONLINE_VPSS_OFFLINE;
+
+    /************************************************
+    step1:  Get all sensors information
+    *************************************************/
+    SAMPLE_COMM_VI_GetSensorInfo(&stViConfig);
+    ComboDev = SAMPLE_COMM_VI_GetComboDevBySensor(stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType, s32WorkSnsId);
+
+
+    stViConfig.s32WorkingViNum                           = 1;
+
+    stViConfig.as32WorkingViId[0]                        = 0;
+    stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev;
+    stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
+
+    stViConfig.astViInfo[0].stDevInfo.ViDev              = ViDev;
+    stViConfig.astViInfo[0].stDevInfo.enWDRMode          = WDR_MODE_NONE;
+
+    stViConfig.astViInfo[0].stPipeInfo.enMastPipeMode    = enMastPipeMode;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[0]          = ViPipe;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[1]          = -1;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[2]          = -1;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[3]          = -1;
+
+    stViConfig.astViInfo[0].stChnInfo.ViChn              = ViChn;
+    stViConfig.astViInfo[0].stChnInfo.enPixFormat        = enPixFormat;
+    stViConfig.astViInfo[0].stChnInfo.enDynamicRange     = enDynamicRange;
+    stViConfig.astViInfo[0].stChnInfo.enVideoFormat      = enVideoFormat;
+    stViConfig.astViInfo[0].stChnInfo.enCompressMode     = enCompressMode;
+
+    /************************************************
+    step2:  Get  input size
+    *************************************************/
+    s32Ret = SAMPLE_COMM_VI_GetSizeBySensor(stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType, &enPicSize);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VI_GetSizeBySensor failed!\n");
+        return s32Ret;
+    }
+
+    s32Ret = SAMPLE_COMM_SYS_GetPicSize(enPicSize, &stSize);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_SYS_GetPicSize failed!\n");
+        return s32Ret;
+    }
+
+    /************************************************
+    step3:  Init SYS and common VB
+    *************************************************/
+    hi_memset(&stVbConf, sizeof(VB_CONFIG_S), 0, sizeof(VB_CONFIG_S));
+    stVbConf.u32MaxPoolCnt              = 2;
+
+    u32BlkSize = COMMON_GetPicBufferSize(stSize.u32Width, stSize.u32Height, SAMPLE_PIXEL_FORMAT, DATA_BITWIDTH_10, COMPRESS_MODE_SEG, DEFAULT_ALIGN);
+    stVbConf.astCommPool[0].u64BlkSize  = u32BlkSize;
+    stVbConf.astCommPool[0].u32BlkCnt   = 10;
+
+    u32BlkSize = VI_GetRawBufferSize(stSize.u32Width, stSize.u32Height, PIXEL_FORMAT_RGB_BAYER_16BPP, COMPRESS_MODE_NONE, DEFAULT_ALIGN);
+    stVbConf.astCommPool[1].u64BlkSize  = u32BlkSize;
+    stVbConf.astCommPool[1].u32BlkCnt   = 4;
+
+    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConf);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("system init failed with %d!\n", s32Ret);
+        SAMPLE_COMM_SYS_Exit();
+        return s32Ret;
+    }
+
+    s32Ret = SAMPLE_COMM_VI_SetParam(&stViConfig);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_COMM_SYS_Exit();
+        return s32Ret;
+    }
+
+    /************************************************
+    step4:  Init VI and VO
+    *************************************************/
+    SAMPLE_COMM_VO_GetDefConfig(&stVoConfig);
+    s32Ret = SAMPLE_VIO_StartViVo(&stViConfig, &stVoConfig);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_VIO_StartViVo failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+
+    /************************************************
+    step5:  Bind VI and VO
+    *************************************************/
+    s32Ret = SAMPLE_COMM_VI_Bind_VO(ViPipe, ViChn, VoDev, VoChn);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VI_Bind_VO failed with %#x!\n", s32Ret);
+        goto EXIT1;
+    }
+
+    stLDCAttr.bEnable = HI_TRUE;
+    stLDCAttr.stAttr.bAspect = 0;
+    stLDCAttr.stAttr.s32XRatio = 100;
+    stLDCAttr.stAttr.s32YRatio = 100;
+    stLDCAttr.stAttr.s32XYRatio = 100;
+    stLDCAttr.stAttr.s32CenterXOffset = 0;
+    stLDCAttr.stAttr.s32CenterYOffset = 0;
+    stLDCAttr.stAttr.s32DistortionRatio = 500;
+
+    s32Ret = HI_MPI_VI_SetChnLDCAttr(ViPipe,ViChn,&stLDCAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnLDCAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+
+    stSpreadAttr.bEnable        = HI_TRUE;
+    stSpreadAttr.u32SpreadCoef  = 16;
+    stSpreadAttr.stDestSize.u32Width = 1280;
+    stSpreadAttr.stDestSize.u32Height = 720;
+
+    s32Ret = HI_MPI_VI_SetChnSpreadAttr(ViPipe,ViChn,&stSpreadAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnLDCAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+
+    printf("now LDC on and spread on, press any key to switch spread Off!\n");
+    getchar();
+
+    stSpreadAttr.bEnable              = HI_FALSE;
+    stSpreadAttr.u32SpreadCoef        = 16;
+    stSpreadAttr.stDestSize.u32Width  = 1280;
+    stSpreadAttr.stDestSize.u32Height = 720;
+
+    s32Ret = HI_MPI_VI_SetChnSpreadAttr(ViPipe,ViChn,&stSpreadAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnSpreadAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+    printf("now LDC on and spread off, press any key to switch spread On!\n");
+    getchar();
+
+    stSpreadAttr.bEnable             = HI_TRUE;
+    stSpreadAttr.u32SpreadCoef       = 16;
+    stSpreadAttr.stDestSize.u32Width = 1280;
+    stSpreadAttr.stDestSize.u32Height= 720;
+
+
+    s32Ret = HI_MPI_VI_SetChnSpreadAttr(ViPipe,ViChn,&stSpreadAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnSpreadAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+
+    PAUSE();
+
+    SAMPLE_COMM_VI_UnBind_VO(ViPipe, ViChn, VoDev, VoChn);
+
+    EXIT1:
+    SAMPLE_VIO_StopViVo(&stViConfig, &stVoConfig);
+
+    EXIT:
+    SAMPLE_COMM_SYS_Exit();
+
+    return s32Ret;
+}
 
 /******************************************************************************
 * function    : main()
@@ -2136,6 +2341,10 @@ int main(int argc, char* argv[])
 
         case 7:
             s32Ret = SAMPLE_VIO_OV426_PreView(enVoIntfType);
+            break;
+			
+		case 8:
+            s32Ret = SAMPLE_VIO_OV9712_PreView(enVoIntfType);
             break;
             
         default:

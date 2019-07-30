@@ -1870,7 +1870,7 @@ HI_S32 SAMPLE_VIO_4K30_LDC_SPREAD(VO_INTF_TYPE_E enVoIntfType)
 HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32             s32Ret;
-    VI_DEV             ViDev               = 0;
+    VI_DEV             ViDev               = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
     VI_PIPE            ViPipe              = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
     VI_CHN             ViChn               = 0;
     HI_S32             s32WorkSnsId        = 0;
@@ -1902,6 +1902,9 @@ HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
     stViConfig.s32WorkingViNum                           = 1;
 
     stViConfig.as32WorkingViId[0]                        = 0;
+    
+    // 目前是DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()目前返回的ComboDev就是0，
+    // 如果接DC1、DC2，就要修改SAMPLE_COMM_VI_GetComboDevBySensorm()了
     stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev;
     stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
 
@@ -2075,7 +2078,7 @@ HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32             s32Ret;
-    VI_DEV             ViDev               = 0;
+    VI_DEV             ViDev               = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
     VI_PIPE            ViPipe              = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
     VI_CHN             ViChn               = 0;
     HI_S32             s32WorkSnsId        = 0;
@@ -2107,7 +2110,10 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
     stViConfig.s32WorkingViNum                           = 1;
 
     stViConfig.as32WorkingViId[0]                        = 0;
-    stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev;
+
+    // 目前是DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()目前返回的ComboDev就是0，
+    // 如果接DC1、DC2，就要修改SAMPLE_COMM_VI_GetComboDevBySensorm()了
+    stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev; 
     stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
 
     stViConfig.astViInfo[0].stDevInfo.ViDev              = ViDev;

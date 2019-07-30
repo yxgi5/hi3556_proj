@@ -32,16 +32,14 @@ static HI_U32       g_au32IspSnsId[ISP_MAX_DEV_NUM] = {0, 1};
 
 SAMPLE_SNS_TYPE_E g_enSnsType[MAX_SENSOR_NUM] =
 {
-    SENSOR_TYPE
-//	
-//	    SENSOR0_TYPE,
-//	    SENSOR1_TYPE,
-//	    SENSOR2_TYPE,
-//	    SENSOR3_TYPE,
-//	    SENSOR4_TYPE,
-//	    SENSOR5_TYPE,
-//	    SENSOR6_TYPE,
-//	    SENSOR7_TYPE
+    SENSOR0_TYPE,
+    SENSOR1_TYPE,
+    SENSOR2_TYPE,
+    SENSOR3_TYPE,
+    SENSOR4_TYPE,
+    SENSOR5_TYPE,
+    SENSOR6_TYPE,
+    SENSOR7_TYPE
 };
 
 ISP_PUB_ATTR_S ISP_PUB_ATTR_IMX477_12M_30FPS =
@@ -266,11 +264,11 @@ HI_S32 SAMPLE_COMM_ISP_GetIspAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, ISP_PUB_ATTR
             memcpy(pstPubAttr, &ISP_PUB_ATTR_IMX277_SLVS_2M_240FPS, sizeof(ISP_PUB_ATTR_S));
             break;
 
-        case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
             memcpy(pstPubAttr, &ISP_PUB_ATTR_OV426_160K_30FPS, sizeof(ISP_PUB_ATTR_S));
             break;
 
-        case OMNIVISION_OV9712_DC_720P_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             memcpy(pstPubAttr, &ISP_PUB_ATTR_OV9712_720P_30FPS, sizeof(ISP_PUB_ATTR_S));
             break;
 
@@ -315,10 +313,10 @@ ISP_SNS_OBJ_S* SAMPLE_COMM_ISP_GetSnsObj(HI_U32 u32SnsId)
         case SONY_IMX277_SLVS_2M_240FPS_12BIT:
             return &stSnsImx277SlvsObj;
 
-        case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
             return &stSnsOv426Obj;
 
-        case OMNIVISION_OV9712_DC_720P_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             return &stSnsOv9712Obj;
 
         default:

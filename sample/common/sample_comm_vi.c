@@ -1302,8 +1302,8 @@ static input_mode_t SAMPLE_COMM_VI_GetSnsInputMode(SAMPLE_SNS_TYPE_E enSnsType)
             enInputMode = INPUT_MODE_SLVS;
             break;
 
-        case OMNIVISION_OV426_DC_160K_30FPS:
-        case OMNIVISION_OV9712_DC_720P_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             enInputMode = INPUT_MODE_CMOS;
             break;
 
@@ -2251,11 +2251,11 @@ HI_S32 SAMPLE_COMM_VI_GetDevAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_DEV_ATTR_S
             hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_IMX277_SLVS_2M_BASE, sizeof(VI_DEV_ATTR_S));
             break;
 
-        case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
             hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_OV426_DC_160K_BASE, sizeof(VI_DEV_ATTR_S));
             break;
 
-        case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_OV9712_DC_720P_BASE, sizeof(VI_DEV_ATTR_S));
             break;
 
@@ -2322,11 +2322,11 @@ HI_S32 SAMPLE_COMM_VI_GetPipeAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_PIPE_ATTR
             hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_1920x1080_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
             break;
 
-        case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
             hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_400x400_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
             break;
 
-        case OMNIVISION_OV9712_DC_720P_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_1280x720_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
             break;
             
@@ -2389,11 +2389,11 @@ HI_S32 SAMPLE_COMM_VI_GetChnAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_CHN_ATTR_S
             hi_memcpy(pstChnAttr, sizeof(VI_CHN_ATTR_S), &CHN_ATTR_1920x1080_420_SDR8_LINEAR, sizeof(VI_CHN_ATTR_S));
             break;
 
-        case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
             hi_memcpy(pstChnAttr, sizeof(VI_CHN_ATTR_S), &CHN_ATTR_400x400_420_SDR8_LINEAR, sizeof(VI_CHN_ATTR_S));
             break;
 
-        case OMNIVISION_OV9712_DC_720P_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             hi_memcpy(pstChnAttr, sizeof(VI_CHN_ATTR_S), &CHN_ATTR_1280x720_420_SDR8_LINEAR, sizeof(VI_CHN_ATTR_S));
             break;
 
@@ -3808,11 +3808,11 @@ HI_S32 SAMPLE_COMM_VI_GetSizeBySensor(SAMPLE_SNS_TYPE_E enMode, PIC_SIZE_E* penS
             *penSize = PIC_1080P;
             break;
             
-        case OMNIVISION_OV426_DC_160K_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
             *penSize = PIC_400x400;
             break;
 
-        case OMNIVISION_OV9712_DC_720P_30FPS:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             *penSize = PIC_720P;
             break;
             
@@ -3849,8 +3849,8 @@ HI_S32 SAMPLE_COMM_VI_GetFrameRateBySensor(SAMPLE_SNS_TYPE_E enMode, HI_U32* pu3
 	    case SONY_IMX334_MIPI_8M_30FPS_12BIT_WDR2TO1:
         case SONY_IMX277_SLVS_8M_30FPS_12BIT:
         case SONY_IMX277_SLVS_12M_30FPS_12BIT:
-        case OMNIVISION_OV426_DC_160K_30FPS:
-        case OMNIVISION_OV9712_DC_720P_30FPS:
+        case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             *pu32FrameRate = 30;
             break;
 
@@ -3891,26 +3891,21 @@ HI_VOID SAMPLE_COMM_VI_GetSensorInfo(SAMPLE_VI_CONFIG_S* pstViConfig)
 
     for (i = 0; i < VI_MAX_DEV_NUM; i++)
     {
-//	        pstViConfig->astViInfo[i].stSnsInfo.s32SnsId = i;
-//	        pstViConfig->astViInfo[i].stSnsInfo.s32BusId = i;
-//	        pstViConfig->astViInfo[i].stSnsInfo.MipiDev  = i;
+        pstViConfig->astViInfo[i].stSnsInfo.s32SnsId = i;
+        pstViConfig->astViInfo[i].stSnsInfo.s32BusId = i;
+        pstViConfig->astViInfo[i].stSnsInfo.MipiDev  = i;
 
         hi_memset(&pstViConfig->astViInfo[i].stSnapInfo, sizeof(SAMPLE_SNAP_INFO_S), 0, sizeof(SAMPLE_SNAP_INFO_S));
     }
 
-//	    pstViConfig->astViInfo[0].stSnsInfo.enSnsType = SENSOR0_TYPE;
-//	    pstViConfig->astViInfo[1].stSnsInfo.enSnsType = SENSOR1_TYPE;
-//	    pstViConfig->astViInfo[2].stSnsInfo.enSnsType = SENSOR2_TYPE;
-//	    pstViConfig->astViInfo[3].stSnsInfo.enSnsType = SENSOR3_TYPE;
-//	    pstViConfig->astViInfo[4].stSnsInfo.enSnsType = SENSOR4_TYPE;
-//	    pstViConfig->astViInfo[5].stSnsInfo.enSnsType = SENSOR5_TYPE;
-//	    pstViConfig->astViInfo[6].stSnsInfo.enSnsType = SENSOR6_TYPE;
-//	    pstViConfig->astViInfo[7].stSnsInfo.enSnsType = SENSOR7_TYPE;
-
-    pstViConfig->astViInfo[0].stSnsInfo.s32SnsId = 0;
-    pstViConfig->astViInfo[0].stSnsInfo.s32BusId = 0;
-    pstViConfig->astViInfo[0].stSnsInfo.MipiDev  = 0;
-    pstViConfig->astViInfo[0].stSnsInfo.enSnsType = SENSOR_TYPE;
+    pstViConfig->astViInfo[0].stSnsInfo.enSnsType = SENSOR0_TYPE;
+    pstViConfig->astViInfo[1].stSnsInfo.enSnsType = SENSOR1_TYPE;
+    pstViConfig->astViInfo[2].stSnsInfo.enSnsType = SENSOR2_TYPE;
+    pstViConfig->astViInfo[3].stSnsInfo.enSnsType = SENSOR3_TYPE;
+    pstViConfig->astViInfo[4].stSnsInfo.enSnsType = SENSOR4_TYPE;
+    pstViConfig->astViInfo[5].stSnsInfo.enSnsType = SENSOR5_TYPE;
+    pstViConfig->astViInfo[6].stSnsInfo.enSnsType = SENSOR6_TYPE;
+    pstViConfig->astViInfo[7].stSnsInfo.enSnsType = SENSOR7_TYPE;
 }
 
 combo_dev_t SAMPLE_COMM_VI_GetComboDevBySensor(SAMPLE_SNS_TYPE_E enMode, HI_S32 s32SnsIdx)

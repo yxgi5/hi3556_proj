@@ -826,6 +826,15 @@ static HI_VOID sensor_config(void)
     {
         bt1120_pin_mux();
         himm(0x12010104, 0x00c28e00);
+        himm(0x12010114, 0x74747474); // PERI_CRG69 reset
+        himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz
+    }
+    else if(!strcmp(sensor_type0, "ov426"))
+    {
+        bt1120_pin_mux();
+        himm(0x12010104, 0x00c28e00);
+        himm(0x12010114, 0x74747474); // PERI_CRG69 reset
+        himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz
     }
 }
 

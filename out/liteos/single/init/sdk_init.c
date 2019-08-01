@@ -91,8 +91,8 @@ static void slave_pin_mux(void)
 static void i2c0_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F000068, 0x000014f3);
-    himm(0x1F00006C, 0x000014f3);
+    himm(0x1F000068, 0x000014f3); // iocfg_reg26 SPI0_SCLK io cfg
+    himm(0x1F00006C, 0x000014f3); // iocfg_reg27 SPI0_SDO io cfg
 
     //echo "============i2c0_pin_mux done============="
 }
@@ -101,8 +101,8 @@ static void i2c0_pin_mux(void)
 static void i2c1_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F00007C, 0x000014f3);
-    himm(0x1F000080, 0x000014f3);
+    himm(0x1F00007C, 0x000014f3); // iocfg_reg31 SPI1_SCLK
+    himm(0x1F000080, 0x000014f3); // iocfg_reg32 SPI1_SDO 
 
     //echo "============i2c1_pin_mux done============="
 }
@@ -112,8 +112,8 @@ static void i2c1_pin_mux(void)
 static void i2c2_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F000090, 0x000014f3);
-    himm(0x1F000094, 0x000014f3);
+    himm(0x1F000090, 0x000014f3); // iocfg_reg36 SPI2_SCLK
+    himm(0x1F000094, 0x000014f3); // iocfg_reg37 SPI2_SDO
 
     //echo "============i2c2_pin_mux done============="
 }
@@ -122,8 +122,8 @@ static void i2c2_pin_mux(void)
 static void i2c3_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F0000A4, 0x000014f3);
-    himm(0x1F0000A8, 0x000014f3);
+    himm(0x1F0000A4, 0x000014f3); // iocfg_reg41 SPI3_SCLK
+    himm(0x1F0000A8, 0x000014f3); // iocfg_reg42 SPI3_SDO
 
     //echo "============i2c3_pin_mux done============="
 }
@@ -133,8 +133,8 @@ static void i2c3_pin_mux(void)
 static void i2c4_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F000074, 0x000014f3);
-    himm(0x1F000078, 0x000014f3);
+    himm(0x1F000074, 0x000014f3); // iocfg_reg29
+    himm(0x1F000078, 0x000014f3); // iocfg_reg30
 
     //echo "============i2c4_pin_mux done============="
 }
@@ -144,8 +144,8 @@ static void i2c4_pin_mux(void)
 static void i2c5_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F000088, 0x000014f3);
-    himm(0x1F00008C, 0x000014f3);
+    himm(0x1F000088, 0x000014f3); // iocfg_reg34
+    himm(0x1F00008C, 0x000014f3); // iocfg_reg35
 
     //echo "============i2c5_pin_mux done============="
 }
@@ -154,8 +154,8 @@ static void i2c5_pin_mux(void)
 static void i2c6_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F00009C, 0x000014f3);
-    himm(0x1F0000A0, 0x000014f3);
+    himm(0x1F00009C, 0x000014f3); // iocfg_reg39
+    himm(0x1F0000A0, 0x000014f3); // iocfg_reg40
 
 
     //echo "============i2c6_pin_mux done============="
@@ -165,8 +165,8 @@ static void i2c6_pin_mux(void)
 static void i2c7_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F0000B0, 0x000014f3);
-    himm(0x1F0000B4, 0x000014f3);
+    himm(0x1F0000B0, 0x000014f3); // iocfg_reg44
+    himm(0x1F0000B4, 0x000014f3); // iocfg_reg45
 
     //echo "============i2c7_pin_mux done============="
 }
@@ -175,8 +175,8 @@ static void i2c7_pin_mux(void)
 static void i2c8_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F0010C8, 0x000014f2);
-    himm(0x1F0010CC, 0x000014f2);
+    himm(0x1F0010C8, 0x000014f2); // iocfg_reg126
+    himm(0x1F0010CC, 0x000014f2); // iocfg_reg127
 
     //echo "============i2c8_pin_mux done============="
 }
@@ -185,8 +185,8 @@ static void i2c8_pin_mux(void)
 static void i2c9_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F0010D0, 0x000014f2);
-    himm(0x1F0010D4, 0x000014f2);
+    himm(0x1F0010D0, 0x000014f2); // iocfg_reg128
+    himm(0x1F0010D4, 0x000014f2); // iocfg_reg129
 
     //echo "============i2c9_pin_mux done============="
 }
@@ -195,8 +195,8 @@ static void i2c9_pin_mux(void)
 static void i2c10_pin_mux(void)
 {
     //#SCL SDA
-    himm(0x1F0010DC, 0x000014f2);
-    himm(0x1F0010E0, 0x000014f2);
+    himm(0x1F0010DC, 0x000014f2); // iocfg_reg131
+    himm(0x1F0010E0, 0x000014f2); // iocfg_reg132
 
     //echo "============i2c10_pin_mux done============="
 }
@@ -205,53 +205,53 @@ static void i2c10_pin_mux(void)
 //#i2c11 -> 9022
 static void i2c11_pin_mux(void)
 {
-    himm(0x1F0010F4, 0x00001C00);
-    himm(0x1F0010F0, 0x00001C00);
+    himm(0x1F0010F4, 0x00001C00); // iocfg_reg137
+    himm(0x1F0010F0, 0x00001C00); // iocfg_reg136
     //echo "============i2c11_pin_mux done============="
 }
 
 static void spi0_pin_mux(void)
 {
-    himm(0x1F000068, 0x000004f1);
-    himm(0x1F00006c, 0x000004f1);
-    himm(0x1F000070, 0x000014f1);
-    himm(0x1F000074, 0x000004f1);
-    himm(0x1F000078, 0x000004f1);
+    himm(0x1F000068, 0x000004f1); // iocfg_reg26 SPI0_SCLK
+    himm(0x1F00006c, 0x000004f1); // iocfg_reg27 SPI0_SDO
+    himm(0x1F000070, 0x000014f1); // iocfg_reg28 SPI0_SDI
+    himm(0x1F000074, 0x000004f1); // iocfg_reg29 SPI0_CSN0
+    himm(0x1F000078, 0x000004f1); // iocfg_reg30 SPI0_CSN1
     //echo "============spi0_pin_mux done============="
 }
 
 #if 0
 static void spi1_pin_mux(void)
 {
-    himm(0x1F00007c, 0x000004f1);
-    himm(0x1F000080, 0x000004f1);
-    himm(0x1F000084, 0x000014f1);
-    himm(0x1F000088, 0x000004f1);
-    himm(0x1F00008c, 0x000004f1);
+    himm(0x1F00007c, 0x000004f1); // iocfg_reg31 SPI1_SCLK
+    himm(0x1F000080, 0x000004f1); // iocfg_reg32 SPI1_SDO
+    himm(0x1F000084, 0x000014f1); // iocfg_reg33 SPI1_SDI
+    himm(0x1F000088, 0x000004f1); // iocfg_reg34 SPI1_CSN0
+    himm(0x1F00008c, 0x000004f1); // iocfg_reg35 SPI1_CSN1
     //echo "============spi1_pin_mux done============="
 }
 #endif
 
 static void vo_bt1120_mode(void)
 {
-    himm(0x1F001084, 0x000000f1);
+    himm(0x1F001084, 0x000000f1); // iocfg_reg109 VOU1120_DATA8
 
-    himm(0x1F001088, 0x000004f1);
-    himm(0x1F00108C, 0x000004f1);
-    himm(0x1F001090, 0x000004f1);
-    himm(0x1F001094, 0x000004f1);
-    himm(0x1F001098, 0x000004f1);
-    himm(0x1F00109C, 0x000004f1);
-    himm(0x1F0010A0, 0x000004f1);
-    himm(0x1F0010A4, 0x000004f1);
-    himm(0x1F0010A8, 0x000004f1);
-    himm(0x1F0010AC, 0x000004f1);
-    himm(0x1F0010B0, 0x000004f1);
-    himm(0x1F0010B4, 0x000004f1);
-    himm(0x1F0010B8, 0x000004f1);
-    himm(0x1F0010BC, 0x000004f1);
-    himm(0x1F0010C0, 0x000004f1);
-    himm(0x1F0010C4, 0x000004f1);
+    himm(0x1F001088, 0x000004f1); // iocfg_reg110 VOU1120_DATA0
+    himm(0x1F00108C, 0x000004f1); // iocfg_reg111 VOU1120_DATA1
+    himm(0x1F001090, 0x000004f1); // iocfg_reg112 VOU1120_DATA2
+    himm(0x1F001094, 0x000004f1); // iocfg_reg113 VOU1120_DATA3
+    himm(0x1F001098, 0x000004f1); // iocfg_reg114 VOU1120_DATA4
+    himm(0x1F00109C, 0x000004f1); // iocfg_reg115 VOU1120_DATA5
+    himm(0x1F0010A0, 0x000004f1); // iocfg_reg116 VOU1120_DATA6
+    himm(0x1F0010A4, 0x000004f1); // iocfg_reg117 VOU1120_DATA7
+    himm(0x1F0010A8, 0x000004f1); // iocfg_reg118 VOU1120_DATA8
+    himm(0x1F0010AC, 0x000004f1); // iocfg_reg119 VOU1120_DATA9
+    himm(0x1F0010B0, 0x000004f1); // iocfg_reg120 VOU1120_DATA10
+    himm(0x1F0010B4, 0x000004f1); // iocfg_reg121 VOU1120_DATA11
+    himm(0x1F0010B8, 0x000004f1); // iocfg_reg122 VOU1120_DATA12
+    himm(0x1F0010BC, 0x000004f1); // iocfg_reg123 VOU1120_DATA13
+    himm(0x1F0010C0, 0x000004f1); // iocfg_reg124 VOU1120_DATA14
+    himm(0x1F0010C4, 0x000004f1); // iocfg_reg125 VOU1120_DATA15
 
     //echo "============vo_output_mode done============="
 }
@@ -259,34 +259,34 @@ static void vo_bt1120_mode(void)
 #if 0
 static void vo_lcd_mode(void)
 {
-    himm(0x1F0010EC, 0x000004f2);
-    himm(0x1F0010A4, 0x000004f2);
-    himm(0x1F00109C, 0x000004f2);
-    himm(0x1F0010E4, 0x000004f2);
-    himm(0x1F001098, 0x000004f2);
-    himm(0x1F001094, 0x000004f2);
-    himm(0x1F001090, 0x000004f2);
-    himm(0x1F00108C, 0x000004f2);
-    himm(0x1F001088, 0x000004f2);
-    himm(0x1F0010C4, 0x000004f2);
-    himm(0x1F0010C0, 0x000004f2);
-    himm(0x1F0010A8, 0x000004f2);
-    himm(0x1F0010B8, 0x000004f2);
-    himm(0x1F0010B4, 0x000004f2);
-    himm(0x1F0010B0, 0x000004f2);
-    himm(0x1F0010AC, 0x000004f2);
-    himm(0x1F001008, 0x000004f2);
-    himm(0x1F00100C, 0x000004f2);
-    himm(0x1F001010, 0x000004f2);
-    himm(0x1F001000, 0x000004f2);
-    himm(0x1F001014, 0x000004f2);
-    himm(0x1F001038, 0x000004f2);
-    himm(0x1F00101C, 0x000004f2);
-    himm(0x1F001030, 0x000004f2);
-    himm(0x1F001020, 0x000004f2);
-    himm(0x1F001024, 0x000004f2);
-    himm(0x1F001028, 0x000004f2);
-    himm(0x1F00102C, 0x000004f2);
+    himm(0x1F0010EC, 0x000004f2); // iocfg_reg135 GPIO0_3 cfg as LCD_CLK
+    himm(0x1F0010A4, 0x000004f2); // iocfg_reg117 VOU1120_DATA7 cfg as LCD_DE
+    himm(0x1F00109C, 0x000004f2); // iocfg_reg115 VOU1120_DATA5 cfg as LCD_HSYNC
+    himm(0x1F0010E4, 0x000004f2); // iocfg_reg133 GPIO0_1 cfg as LCD_VSYNC
+    himm(0x1F001098, 0x000004f2); // iocfg_reg114 VOU1120_DATA4 cfg as LCD_DATA0
+    himm(0x1F001094, 0x000004f2); // iocfg_reg113 VOU1120_DATA3 cfg as LCD_DATA1
+    himm(0x1F001090, 0x000004f2); // iocfg_reg112 VOU1120_DATA2 cfg as LCD_DATA2
+    himm(0x1F00108C, 0x000004f2); // iocfg_reg111 VOU1120_DATA1 cfg as LCD_DATA3
+    himm(0x1F001088, 0x000004f2); // iocfg_reg110 VOU1120_DATA0 cfg as LCD_DATA4
+    himm(0x1F0010C4, 0x000004f2); // iocfg_reg125 VOU1120_DATA15 cfg as LCD_DATA5
+    himm(0x1F0010C0, 0x000004f2); // iocfg_reg124 VOU1120_DATA14 cfg as LCD_DATA6
+    himm(0x1F0010A8, 0x000004f2); // iocfg_reg118 VOU1120_DATA8 cfg as LCD_DATA7
+    himm(0x1F0010B8, 0x000004f2); // iocfg_reg122 VOU1120_DATA12 cfg as LCD_DATA8
+    himm(0x1F0010B4, 0x000004f2); // iocfg_reg121 VOU1120_DATA11 cfg as LCD_DATA9
+    himm(0x1F0010B0, 0x000004f2); // iocfg_reg120 VOU1120_DATA10 cfg as LCD_DATA10
+    himm(0x1F0010AC, 0x000004f2); // iocfg_reg119 VOU1120_DATA9 cfg as LCD_DATA11
+    himm(0x1F001008, 0x000004f2); // iocfg_reg78 RGMII0_RXD2 cfg as LCD_DATA12
+    himm(0x1F00100C, 0x000004f2); // iocfg_reg79 RGMII0_RXD1 cfg as LCD_DATA13
+    himm(0x1F001010, 0x000004f2); // iocfg_reg80 RGMII0_RXD0 cfg as LCD_DATA14
+    himm(0x1F001000, 0x000004f2); // iocfg_reg76 RGMII0_RXDV cfg as LCD_DATA15
+    himm(0x1F001014, 0x000004f2); // iocfg_reg81 RGMII0_RXCK cfg as LCD_DATA16
+    himm(0x1F001038, 0x000004f2); // iocfg_reg90 MDCK0 cfg as LCD_DATA17
+    himm(0x1F00101C, 0x000004f2); // iocfg_reg83 RGMII0_TXD3 cfg as LCD_DATA18
+    himm(0x1F001030, 0x000004f2); // iocfg_reg88 EPHY0_CLK cfg as LCD_DATA19
+    himm(0x1F001020, 0x000004f2); // iocfg_reg84 RGMII0_TXD2 cfg as LCD_DATA20
+    himm(0x1F001024, 0x000004f2); // iocfg_reg85 RGMII0_TXD1 cfg as LCD_DATA21
+    himm(0x1F001028, 0x000004f2); // iocfg_reg86 RGMII0_TXD0 cfg as LCD_DATA22
+    himm(0x1F00102C, 0x000004f2); // iocfg_reg87 RGMII0_TXCKOUT cfg as LCD_DATA23
 
     //echo "============vo_output_mode done============="
 }
@@ -294,18 +294,18 @@ static void vo_lcd_mode(void)
 static void vo_lcd8bit_mode(void)
 {
     //#lcd8bit
-    himm(0x1f001088, 0x4f2);
-    himm(0x1f00108c, 0x4f2);
-    himm(0x1f001090, 0x4f2);
-    himm(0x1f001094, 0x4f2);
-    himm(0x1f001098, 0x4f2);
-    himm(0x1f00109c, 0x4f2);
-    himm(0x1f0010a4, 0x4f2);
-    himm(0x1f0010a8, 0x4f2);
-    himm(0x1f0010c0, 0x4f2);
-    himm(0x1f0010c4, 0x4f2);
-    himm(0x1f0010e4, 0x4f2);
-    himm(0x1f0010ec, 0x4f2);
+    himm(0x1f001088, 0x4f2); // iocfg_reg110 VOU1120_DATA0 cfg as LCD_DATA4
+    himm(0x1f00108c, 0x4f2); // iocfg_reg111 VOU1120_DATA1 cfg as LCD_DATA3
+    himm(0x1f001090, 0x4f2); // iocfg_reg112 VOU1120_DATA2 cfg as LCD_DATA2
+    himm(0x1f001094, 0x4f2); // iocfg_reg113 VOU1120_DATA3 cfg as LCD_DATA1
+    himm(0x1f001098, 0x4f2); // iocfg_reg114 VOU1120_DATA4 cfg as LCD_DATA0
+    himm(0x1f00109c, 0x4f2); // iocfg_reg115 VOU1120_DATA5 cfg as LCD_HSYNC
+    himm(0x1f0010a4, 0x4f2); // iocfg_reg117 VOU1120_DATA7 cfg as LCD_DE
+    himm(0x1f0010a8, 0x4f2); // iocfg_reg118 VOU1120_DATA8 cfg as LCD_DATA7
+    himm(0x1f0010c0, 0x4f2); // iocfg_reg124 VOU1120_DATA14 cfg as LCD_DATA6
+    himm(0x1f0010c4, 0x4f2); // iocfg_reg125 VOU1120_DATA15 cfg as LCD_DATA5
+    himm(0x1f0010e4, 0x4f2); // iocfg_reg133 GPIO0_1 cfg as LCD_VSYNC
+    himm(0x1f0010ec, 0x4f2); // iocfg_reg135 GPIO0_3 cfg as LCD_CLK
     //echo "============vo_lcd8bit_mode done============="
 }
 
@@ -325,11 +325,11 @@ static void spi4_pin_mux(void)
 static void vo_mipi_tx_mode(void)
 {
     //#mipi_tx
-    himm(0x1F001088 ,0x0);
-    himm(0x12146004 ,0x1);
-    himm(0x12146400 ,0x1);
-    himm(0x12140010 ,0x4);
-    himm(0x12140400 ,0x4);
+    himm(0x1F001088 ,0x0); // iocfg_reg110 VOU1120_DATA0 cfg as GPIO6_0
+    himm(0x12146004 ,0x1); // GPIO6_0 can be read and write PADDR[9:2]=0x001(PADDR[9:0]=0x004), and write 1 to GPIO6_0
+    himm(0x12146400 ,0x1); // GPIO6_0 gpio_dir[0]=1 output
+    himm(0x12140010 ,0x4); // GPIO0_2 PADDR[9:2]=0x004, gpio_data=0x4(gpio_data[2]=1)
+    himm(0x12140400 ,0x4); // GPIO0_2 gpio_dir[2]=1, output
 
     //echo( "============vo_mipi_tx_mode done=============\n");
 }
@@ -337,42 +337,42 @@ static void vo_mipi_tx_mode(void)
 
 static void hmdi_pin_mode(void)
 {
-    himm(0x1F0000C4, 0x00001400);
-    himm(0x1F0000C8, 0x00001400);
-    himm(0x1F0000CC, 0x00001400);
-    himm(0x1F0000D0, 0x00001400);
+    himm(0x1F0000C4, 0x00001400); // iocfg_reg49 HDMI_HOTPLUG
+    himm(0x1F0000C8, 0x00001400); // iocfg_reg50 HDMI_CEC
+    himm(0x1F0000CC, 0x00001400); // iocfg_reg51 HDMI_SDA
+    himm(0x1F0000D0, 0x00001400); // iocfg_reg52 HDMI_SCL
 }
 
 static void i2s_pin_mux(void)
 {
-    himm(0x1F0000FC, 0x00000ef2);
-    himm(0x1F000100, 0x00001ef2);
-    himm(0x1F000104, 0x00001ef2);
-    himm(0x1F000108, 0x00000ef2);
-    himm(0x1F00010C, 0x00001ef2);
+    himm(0x1F0000FC, 0x00000ef2); // iocfg_reg63 JTAG_TRSTN cfg as I2S_MCLK
+    himm(0x1F000100, 0x00001ef2); // iocfg_reg64 JTAG_TCK cfg as I2S_BCLK_TX
+    himm(0x1F000104, 0x00001ef2); // iocfg_reg65 JTAG_TMS cfg as I2S_WS_TX
+    himm(0x1F000108, 0x00000ef2); // iocfg_reg66 JTAG_TDO cfg as I2S_SD_TX
+    himm(0x1F00010C, 0x00001ef2); // iocfg_reg67 JTAG_TDI cfg as I2S_SD_RX
 
     //echo "============i2s_pin_mux done============="
 }
 
 static void bt1120_pin_mux(void)
 {
-    himm(0x1F001084 ,0x000014f3);
-    himm(0x1F0010A4 ,0x000014f3);
-    himm(0x1F0010A0 ,0x000014f3);
-    himm(0x1F00109c ,0x000014f3);
-    himm(0x1F001098 ,0x000014f3);
-    himm(0x1F001094 ,0x000014f3);
-    himm(0x1F001090 ,0x000014f3);
-    himm(0x1F00108c ,0x000014f3);
-    himm(0x1F001088 ,0x000014f3);
-    himm(0x1F0010c4 ,0x000014f3);
-    himm(0x1F0010c0 ,0x000014f3);
-    himm(0x1F0010bc ,0x000014f3);
-    himm(0x1F0010b8 ,0x000014f3);
-    himm(0x1F0010b4 ,0x000014f3);
-    himm(0x1F0010b0 ,0x000014f3);
-    himm(0x1F0010ac ,0x000014f3);
-    himm(0x1F0010a8 ,0x000014f3);
+    himm(0x1F001084 ,0x000014f3); // iocfg_reg109 VOU1120_DATA8
+    himm(0x1F0010A4 ,0x000014f3); // iocfg_reg117 VOU1120_DATA7
+    himm(0x1F0010A0 ,0x000014f3); // iocfg_reg116 VOU1120_DATA6
+    himm(0x1F00109c ,0x000014f3); // iocfg_reg115 VOU1120_DATA5
+    himm(0x1F001098 ,0x000014f3); // iocfg_reg114 VOU1120_DATA4
+    himm(0x1F001094 ,0x000014f3); // iocfg_reg113 VOU1120_DATA3
+    himm(0x1F001090 ,0x000014f3); // iocfg_reg112 VOU1120_DATA2
+    himm(0x1F00108c ,0x000014f3); // iocfg_reg111 VOU1120_DATA1
+    himm(0x1F001088 ,0x000014f3); // iocfg_reg110 VOU1120_DATA0
+    himm(0x1F0010c4 ,0x000014f3); // iocfg_reg125 VOU1120_DATA15
+    himm(0x1F0010c0 ,0x000014f3); // iocfg_reg124 VOU1120_DATA14
+    himm(0x1F0010bc ,0x000014f3); // iocfg_reg123 VOU1120_DATA13
+    himm(0x1F0010b8 ,0x000014f3); // iocfg_reg122 VOU1120_DATA12
+    himm(0x1F0010b4 ,0x000014f3); // iocfg_reg121 VOU1120_DATA11
+    himm(0x1F0010b0 ,0x000014f3); // iocfg_reg120 VOU1120_DATA10
+    himm(0x1F0010ac ,0x000014f3); // iocfg_reg119 VOU1120_DATA9
+    himm(0x1F0010a8 ,0x000014f3); // iocfg_reg118 VOU1120_DATA8
     //echo "============bt1120_pin_mux done============="
 }
 
@@ -774,25 +774,25 @@ static HI_VOID sensor_config(void)
 {
     if (!strcmp(sensor_type0, "imx477"))
     {
-        himm(0x12030098, 0x0);
-        himm(0x1203009c, 0x0);
+        himm(0x12030098, 0x0); // MISC_CTRL38 VICAP mode reg 0
+        himm(0x1203009c, 0x0); // MISC_CTRL39 VICAP mode reg 1
 
-        himm(0x12010114, 0x74747474);
-        himm(0x12010114, 0x14141414);
+        himm(0x12010114, 0x74747474); // PERI_CRG69 reset
+        himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz
     }
     else if(!strcmp(sensor_type0, "imx290"))
     {
-        himm(0x12030098, 0x0);
-        himm(0x1203009c, 0x0);
-        himm(0x12010114, 0x78787878);
-        himm(0x12010114, 0x18181818);
+        himm(0x12030098, 0x0); // MISC_CTRL38 VICAP mode reg 0
+        himm(0x1203009c, 0x0); // MISC_CTRL39 VICAP mode reg 1
+        himm(0x12010114, 0x78787878); // PERI_CRG69 reset
+        himm(0x12010114, 0x18181818); // PERI_CRG69 sensor clk 0~3 37.125MHz
     }
     else if(!strcmp(sensor_type0, "imx290_slave"))
     {
-        himm(0x12030098, 0x0);
-        himm(0x1203009c, 0x0);
-        himm(0x12010114, 0x78787878);
-        himm(0x12010114, 0x10101010);
+        himm(0x12030098, 0x0); // MISC_CTRL38 VICAP mode reg 0
+        himm(0x1203009c, 0x0); // MISC_CTRL39 VICAP mode reg 1
+        himm(0x12010114, 0x78787878); // PERI_CRG69 reset
+        himm(0x12010114, 0x10101010); // PERI_CRG69 sensor clk 0~3 74.25MHz
     }
     else if(!strcmp(sensor_type0, "imx299"))
     {

@@ -356,24 +356,46 @@ static void i2s_pin_mux(void)
 
 static void bt1120_pin_mux(void)
 {
-    himm(0x1F001084 ,0x000014f3); // iocfg_reg109 VOU1120_DATA8
-    himm(0x1F0010A4 ,0x000014f3); // iocfg_reg117 VOU1120_DATA7
-    himm(0x1F0010A0 ,0x000014f3); // iocfg_reg116 VOU1120_DATA6
-    himm(0x1F00109c ,0x000014f3); // iocfg_reg115 VOU1120_DATA5
-    himm(0x1F001098 ,0x000014f3); // iocfg_reg114 VOU1120_DATA4
-    himm(0x1F001094 ,0x000014f3); // iocfg_reg113 VOU1120_DATA3
-    himm(0x1F001090 ,0x000014f3); // iocfg_reg112 VOU1120_DATA2
-    himm(0x1F00108c ,0x000014f3); // iocfg_reg111 VOU1120_DATA1
-    himm(0x1F001088 ,0x000014f3); // iocfg_reg110 VOU1120_DATA0
-    himm(0x1F0010c4 ,0x000014f3); // iocfg_reg125 VOU1120_DATA15
-    himm(0x1F0010c0 ,0x000014f3); // iocfg_reg124 VOU1120_DATA14
-    himm(0x1F0010bc ,0x000014f3); // iocfg_reg123 VOU1120_DATA13
-    himm(0x1F0010b8 ,0x000014f3); // iocfg_reg122 VOU1120_DATA12
-    himm(0x1F0010b4 ,0x000014f3); // iocfg_reg121 VOU1120_DATA11
-    himm(0x1F0010b0 ,0x000014f3); // iocfg_reg120 VOU1120_DATA10
-    himm(0x1F0010ac ,0x000014f3); // iocfg_reg119 VOU1120_DATA9
-    himm(0x1F0010a8 ,0x000014f3); // iocfg_reg118 VOU1120_DATA8
+    himm(0x1F001084 ,0x000014f3); // iocfg_reg109 VOU1120_DATA8 cfg as VI0_CLK
+    himm(0x1F0010A4 ,0x000014f3); // iocfg_reg117 VOU1120_DATA7 cfg as VI0_DATA0
+    himm(0x1F0010A0 ,0x000014f3); // iocfg_reg116 VOU1120_DATA6 cfg as VI0_DATA1
+    himm(0x1F00109c ,0x000014f3); // iocfg_reg115 VOU1120_DATA5 cfg as VI0_DATA2
+    himm(0x1F001098 ,0x000014f3); // iocfg_reg114 VOU1120_DATA4 cfg as VI0_DATA3
+    himm(0x1F001094 ,0x000014f3); // iocfg_reg113 VOU1120_DATA3 cfg as VI0_DATA4
+    himm(0x1F001090 ,0x000014f3); // iocfg_reg112 VOU1120_DATA2 cfg as VI0_DATA5
+    himm(0x1F00108c ,0x000014f3); // iocfg_reg111 VOU1120_DATA1 cfg as VI0_DATA6
+    himm(0x1F001088 ,0x000014f3); // iocfg_reg110 VOU1120_DATA0 cfg as VI0_DATA7
+    himm(0x1F0010c4 ,0x000014f3); // iocfg_reg125 VOU1120_DATA15 cfg as VI0_DATA8
+    himm(0x1F0010c0 ,0x000014f3); // iocfg_reg124 VOU1120_DATA14 cfg as VI0_DATA9
+    himm(0x1F0010bc ,0x000014f3); // iocfg_reg123 VOU1120_DATA13 cfg as VI0_DATA10
+    himm(0x1F0010b8 ,0x000014f3); // iocfg_reg122 VOU1120_DATA12 cfg as VI0_DATA11
+    himm(0x1F0010b4 ,0x000014f3); // iocfg_reg121 VOU1120_DATA11 cfg as VI0_DATA12
+    himm(0x1F0010b0 ,0x000014f3); // iocfg_reg120 VOU1120_DATA10 cfg as VI0_DATA13
+    himm(0x1F0010ac ,0x000014f3); // iocfg_reg119 VOU1120_DATA9 cfg as VI0_DATA14
+    himm(0x1F0010a8 ,0x000014f3); // iocfg_reg118 VOU1120_DATA8 cfg as VI0_DATA15
     //echo "============bt1120_pin_mux done============="
+}
+
+static void dc12_pin_mux(void)
+{
+    himm(0x1F001084 ,0x000014f3); // iocfg_reg109 VOU1120_DATA8 cfg as VI0_CLK
+    himm(0x1F0010A4 ,0x000014f3); // iocfg_reg117 VOU1120_DATA7 cfg as VI0_DATA0
+    himm(0x1F0010A0 ,0x000014f3); // iocfg_reg116 VOU1120_DATA6 cfg as VI0_DATA1
+    himm(0x1F00109c ,0x000014f3); // iocfg_reg115 VOU1120_DATA5 cfg as VI0_DATA2
+    himm(0x1F001098 ,0x000014f3); // iocfg_reg114 VOU1120_DATA4 cfg as VI0_DATA3
+    himm(0x1F001094 ,0x000014f3); // iocfg_reg113 VOU1120_DATA3 cfg as VI0_DATA4
+    himm(0x1F001090 ,0x000014f3); // iocfg_reg112 VOU1120_DATA2 cfg as VI0_DATA5
+    himm(0x1F00108c ,0x000014f3); // iocfg_reg111 VOU1120_DATA1 cfg as VI0_DATA6
+    himm(0x1F001088 ,0x000014f3); // iocfg_reg110 VOU1120_DATA0 cfg as VI0_DATA7
+    himm(0x1F0010c4 ,0x000014f3); // iocfg_reg125 VOU1120_DATA15 cfg as VI0_DATA8
+    himm(0x1F0010c0 ,0x000014f3); // iocfg_reg124 VOU1120_DATA14 cfg as VI0_DATA9
+    himm(0x1F0010bc ,0x000014f3); // iocfg_reg123 VOU1120_DATA13 cfg as VI0_DATA10
+    himm(0x1F0010b8 ,0x000014f3); // iocfg_reg122 VOU1120_DATA12 cfg as VI0_DATA11
+//	    himm(0x1F0010b4 ,0x000014f3); // iocfg_reg121 VOU1120_DATA11 cfg as VI0_DATA12
+//	    himm(0x1F0010b0 ,0x000014f3); // iocfg_reg120 VOU1120_DATA10 cfg as VI0_DATA13
+//	    himm(0x1F0010ac ,0x000014f3); // iocfg_reg119 VOU1120_DATA9 cfg as VI0_DATA14
+//	    himm(0x1F0010a8 ,0x000014f3); // iocfg_reg118 VOU1120_DATA8 cfg as VI0_DATA15
+    //echo "========digital_camera_pin_mux done========="
 }
 
 static void pinmux_cfg(void)
@@ -824,14 +846,14 @@ static HI_VOID sensor_config(void)
     }
     else if(!strcmp(sensor_type0, "ov9712"))
     {
-        bt1120_pin_mux();
+        dc12_pin_mux();
         himm(0x12010104, 0x00c28e00);
         himm(0x12010114, 0x74747474); // PERI_CRG69 reset
         himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz
     }
     else if(!strcmp(sensor_type0, "ov426"))
     {
-        bt1120_pin_mux();
+        dc12_pin_mux();
         himm(0x12010104, 0x00c28e00);
         himm(0x12010114, 0x74747474); // PERI_CRG69 reset
         himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz

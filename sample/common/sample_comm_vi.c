@@ -986,7 +986,7 @@ VI_DEV_ATTR_S DEV_ATTR_OV426_DC_160K_BASE =
     VI_VSYNC_PULSE, VI_VSYNC_NEG_HIGH, VI_HSYNC_VALID_SINGNAL,VI_HSYNC_NEG_HIGH,VI_VSYNC_VALID_SINGAL,VI_VSYNC_VALID_NEG_LOW,
 
     /*hsync_hfb    hsync_act    hsync_hhb*/
-    {0,            400,        176
+    {0,            400,        176,
     /*vsync0_vhb vsync0_act vsync0_hhb*/
      62,           400,        0,
     /*vsync1_vhb vsync1_act vsync1_hhb*/
@@ -1015,7 +1015,7 @@ VI_DEV_ATTR_S DEV_ATTR_OV426_DC_160K_BASE =
         400
     },
     DATA_RATE_X1
-}
+};
 
 VI_DEV_ATTR_S DEV_ATTR_OV9712_DC_720P_BASE =
 {
@@ -1038,7 +1038,7 @@ VI_DEV_ATTR_S DEV_ATTR_OV9712_DC_720P_BASE =
     VI_VSYNC_PULSE, VI_VSYNC_NEG_HIGH, VI_HSYNC_VALID_SINGNAL,VI_HSYNC_NEG_HIGH,VI_VSYNC_VALID_SINGAL,VI_VSYNC_VALID_NEG_LOW,
 
     /*hsync_hfb    hsync_act    hsync_hhb*/
-    {370,            1280,        0
+    {370,            1280,        0,
     /*vsync0_vhb vsync0_act vsync0_hhb*/
      6,           720,        6,
     /*vsync1_vhb vsync1_act vsync1_hhb*/
@@ -1067,8 +1067,7 @@ VI_DEV_ATTR_S DEV_ATTR_OV9712_DC_720P_BASE =
         720
     },
     DATA_RATE_X1
-}
-
+};
 
 VI_PIPE_ATTR_S PIPE_ATTR_1920x1080_RAW12_420_3DNR_RFR =
 {

@@ -35,23 +35,23 @@ void SAMPLE_VIO_Usage(char* sPrgNm)
     printf("index:\n");
     
 
-    //P42@HiMPP V4.0 Ã½Ìå´¦ÀíÈí¼þ¿ª·¢²Î¿¼.pdf
-    //VIºÍVPSSµÄ¹¤×÷Ä£Ê½
+    //P42@HiMPP V4.0 Ã½ï¿½å´¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¿ï¿½.pdf
+    //VIï¿½ï¿½VPSSï¿½Ä¹ï¿½ï¿½ï¿½Ä£Ê½
     
-    //parallel mode: ²¢ÐÐÄ£Ê½
-    //µ±¶Ô½Ó´óÊý¾ÝÁ¿µÄÊ±Ðò£¬ÀýÈç8K@30fpsÊ±£¬ÐèÒªVI_CAPÓëÁ½¸öVI_PROC´¦ÓÚ²¢ÐÐÄ£Ê½£¬
-    //VI_CAPÖ±½Ó°ÑÒ»Ö¡Êý¾ÝËÍ¸øÁ½¸öVI_PROC²¢ÐÐ´¦Àí
-    //ÔÙ¸øVPSS²¢ÐÐ´¦Àí
+    //parallel mode: ï¿½ï¿½ï¿½ï¿½Ä£Ê½
+    //ï¿½ï¿½ï¿½Ô½Ó´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½8K@30fpsÊ±ï¿½ï¿½ï¿½ï¿½ÒªVI_CAPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½VI_PROCï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½
+    //VI_CAPÖ±ï¿½Ó°ï¿½Ò»Ö¡ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½VI_PROCï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½
+    //ï¿½Ù¸ï¿½VPSSï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½
     printf("\t 0)parallel SDR8     VI - VPSS - VO - HDMI.      Embeded isp, phychn channel preview.\n");
 
-    //online mode£ºÔÚÏßÄ£Ê½
-    //¶ÔVI¶øÑÔVI_CAPÓëVI_PROCÖ®¼äÔÚÏßÊý¾ÝÁ÷´«Êä£¬´ËÄ£Ê½ÏÂVI_CAP²»»áÐ´³öRAWÊý¾Ýµ½DDR£¬¶øÊÇÖ±½Ó°ÑÊý¾ÝÁ÷ËÍ¸øVI_PROC¡£
-    //¶ÔVPSS¶øÑÔVI_PROCÓëVPSSÖ®¼äµÄÔÚÏßÊý¾ÝÁ÷´«Êä£¬ÔÚ´ËÄ£Ê½ÏÂVI_PROC²»»áÐ´³öYUVÊý¾Ýµ½DDR£¬¶øÊÇÖ±½Ó°ÑÊý¾ÝÁ÷ËÍ¸øVPSS¡£
+    //online modeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½
+    //ï¿½ï¿½VIï¿½ï¿½ï¿½ï¿½VI_CAPï¿½ï¿½VI_PROCÖ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä£¬ï¿½ï¿½Ä£Ê½ï¿½ï¿½VI_CAPï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½RAWï¿½ï¿½ï¿½Ýµï¿½DDRï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½VI_PROCï¿½ï¿½
+    //ï¿½ï¿½VPSSï¿½ï¿½ï¿½ï¿½VI_PROCï¿½ï¿½VPSSÖ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä£¬ï¿½Ú´ï¿½Ä£Ê½ï¿½ï¿½VI_PROCï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½YUVï¿½ï¿½ï¿½Ýµï¿½DDRï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½VPSSï¿½ï¿½
     printf("\t 1)online   SDR8     VI - VPSS - VO - HDMI.      2 pipe, Embeded isp, phychn channel preview.\n");
 
-    //offline mode£ºÀëÏßÄ£Ê½
-    //¶ÔVI¶øÑÔVI_CAPÐ´³öRAWÊý¾Ýµ½DDR£¬È»ºóVI_PROC´ÓDDR¶ÁÈ¡RAWÊý¾Ý½øÐÐºó´¦Àí¡£
-    //¶ÔVPSS¶øÑÔVI_PROCÐ´³öYUVÊý¾Ýµ½DDR£¬È»ºóVPSS´ÓDDR¶ÁÈ¡YUVÊý¾Ý½øÐÐºó´¦Àí¡£
+    //offline modeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½
+    //ï¿½ï¿½VIï¿½ï¿½ï¿½ï¿½VI_CAPÐ´ï¿½ï¿½RAWï¿½ï¿½ï¿½Ýµï¿½DDRï¿½ï¿½È»ï¿½ï¿½VI_PROCï¿½ï¿½DDRï¿½ï¿½È¡RAWï¿½ï¿½ï¿½Ý½ï¿½ï¿½Ðºï¿½ï¿½ï¿½
+    //ï¿½ï¿½VPSSï¿½ï¿½ï¿½ï¿½VI_PROCÐ´ï¿½ï¿½YUVï¿½ï¿½ï¿½Ýµï¿½DDRï¿½ï¿½È»ï¿½ï¿½VPSSï¿½ï¿½DDRï¿½ï¿½È¡YUVï¿½ï¿½ï¿½Ý½ï¿½ï¿½Ðºï¿½ï¿½ï¿½
     printf("\t 2)offline  SDR8     VI - VPSS - VO - HDMI.      4 pipe, Embeded isp, phychn channel preview.\n");
     printf("\t 3)online  WDR+HDR10 VI - VPSS - VO - HDMI.      Embeded isp, phychn channel preview.\n");
     printf("\t 4)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+ROTATE.\n");
@@ -118,10 +118,10 @@ HI_S32 SAMPLE_VIO_StopViVo(SAMPLE_VI_CONFIG_S* pstViConfig, SAMPLE_VO_CONFIG_S* 
     return HI_SUCCESS;
 }
 
-//P43@HiMPP V4.0 Ã½Ìå´¦ÀíÈí¼þ¿ª·¢²Î¿¼.pdf
-//µ±¶Ô½Ó´óÊý¾ÝÁ¿µÄÊ±Ðò£¬ÀýÈç8K@30fpsÊ±£¬
-//ÐèÒªVI_CAPÓëÁ½¸öVI_PROC´¦ÓÚ²¢ÐÐÄ£Ê½£¬
-//VI_CAPÖ±½Ó°ÑÒ»Ö¡Êý¾ÝËÍ¸øÁ½¸öVI_PROC²¢ÐÐ´¦Àí¡£
+//P43@HiMPP V4.0 Ã½ï¿½å´¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¿ï¿½.pdf
+//ï¿½ï¿½ï¿½Ô½Ó´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½8K@30fpsÊ±ï¿½ï¿½
+//ï¿½ï¿½ÒªVI_CAPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½VI_PROCï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½
+//VI_CAPÖ±ï¿½Ó°ï¿½Ò»Ö¡ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½VI_PROCï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½
 HI_S32 SAMPLE_VIO_8K30_PARALLEL(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32                  s32Ret              = HI_SUCCESS;
@@ -1870,8 +1870,8 @@ HI_S32 SAMPLE_VIO_4K30_LDC_SPREAD(VO_INTF_TYPE_E enVoIntfType)
 HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32             s32Ret;
-    VI_DEV             ViDev               = 5; // ±í3-2 Hi3559AV100 DEVÓë MIPI/SLVS/BT.1120/BT.656/BT601/DC½Ó¿ÚµÄ°ó¶¨¹ØÏµ
-    VI_PIPE            ViPipe              = 5; // ±í3-2 Hi3559AV100 DEVÓë MIPI/SLVS/BT.1120/BT.656/BT601/DC½Ó¿ÚµÄ°ó¶¨¹ØÏµ
+    VI_DEV             ViDev               = 5; // ï¿½ï¿½3-2 Hi3559AV100 DEVï¿½ï¿½ MIPI/SLVS/BT.1120/BT.656/BT601/DCï¿½Ó¿ÚµÄ°ó¶¨¹ï¿½Ïµ
+    VI_PIPE            ViPipe              = 5; // ï¿½ï¿½3-2 Hi3559AV100 DEVï¿½ï¿½ MIPI/SLVS/BT.1120/BT.656/BT601/DCï¿½Ó¿ÚµÄ°ó¶¨¹ï¿½Ïµ
     VI_CHN             ViChn               = 0;
     HI_S32             s32WorkSnsId        = 0;
     VO_DEV             VoDev               = SAMPLE_VO_DEV_DHD0;
@@ -1903,8 +1903,8 @@ HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 
     stViConfig.as32WorkingViId[0]                        = 0;
     
-    // Ä¿Ç°ÊÇDC0, SAMPLE_COMM_VI_GetComboDevBySensorm()Ä¿Ç°·µ»ØµÄComboDev¾ÍÊÇ0£¬
-    // Èç¹û½ÓDC1¡¢DC2£¬¾ÍÒªÐÞ¸ÄSAMPLE_COMM_VI_GetComboDevBySensorm()ÁË
+    // Ä¿Ç°ï¿½ï¿½DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()Ä¿Ç°ï¿½ï¿½ï¿½Øµï¿½ComboDevï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½
+    // ï¿½ï¿½ï¿½ï¿½ï¿½DC1ï¿½ï¿½DC2ï¿½ï¿½ï¿½ï¿½Òªï¿½Þ¸ï¿½SAMPLE_COMM_VI_GetComboDevBySensorm()ï¿½ï¿½
     stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev;
     stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
 
@@ -2078,8 +2078,8 @@ HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32             s32Ret;
-    VI_DEV             ViDev               = 5; // ±í3-2 Hi3559AV100 DEVÓë MIPI/SLVS/BT.1120/BT.656/BT601/DC½Ó¿ÚµÄ°ó¶¨¹ØÏµ
-    VI_PIPE            ViPipe              = 5; // ±í3-2 Hi3559AV100 DEVÓë MIPI/SLVS/BT.1120/BT.656/BT601/DC½Ó¿ÚµÄ°ó¶¨¹ØÏµ
+    VI_DEV             ViDev               = 5; // ï¿½ï¿½3-2 Hi3559AV100 DEVï¿½ï¿½ MIPI/SLVS/BT.1120/BT.656/BT601/DCï¿½Ó¿ÚµÄ°ó¶¨¹ï¿½Ïµ
+    VI_PIPE            ViPipe              = 0; // ï¿½ï¿½3-2 Hi3559AV100 DEVï¿½ï¿½ MIPI/SLVS/BT.1120/BT.656/BT601/DCï¿½Ó¿ÚµÄ°ó¶¨¹ï¿½Ïµ
     VI_CHN             ViChn               = 0;
     HI_S32             s32WorkSnsId        = 0;
     VO_DEV             VoDev               = SAMPLE_VO_DEV_DHD0;
@@ -2098,21 +2098,23 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
     PIXEL_FORMAT_E     enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
     VIDEO_FORMAT_E     enVideoFormat  = VIDEO_FORMAT_LINEAR;
     COMPRESS_MODE_E    enCompressMode = COMPRESS_MODE_NONE;
-    VI_VPSS_MODE_E     enMastPipeMode = VI_ONLINE_VPSS_OFFLINE;
+    VI_VPSS_MODE_E     enMastPipeMode = VI_OFFLINE_VPSS_OFFLINE;
 
     /************************************************
     step1:  Get all sensors information
     *************************************************/
     SAMPLE_COMM_VI_GetSensorInfo(&stViConfig);
     ComboDev = SAMPLE_COMM_VI_GetComboDevBySensor(stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType, s32WorkSnsId);
+    
+    SAMPLE_PRT("stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType = %d\n", stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType); // by alex
 
 
     stViConfig.s32WorkingViNum                           = 1;
 
     stViConfig.as32WorkingViId[0]                        = 0;
 
-    // Ä¿Ç°ÊÇDC0, SAMPLE_COMM_VI_GetComboDevBySensorm()Ä¿Ç°·µ»ØµÄComboDev¾ÍÊÇ0£¬
-    // Èç¹û½ÓDC1¡¢DC2£¬¾ÍÒªÐÞ¸ÄSAMPLE_COMM_VI_GetComboDevBySensorm()ÁË
+    // Ä¿Ç°ï¿½ï¿½DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()Ä¿Ç°ï¿½ï¿½ï¿½Øµï¿½ComboDevï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½
+    // ï¿½ï¿½ï¿½ï¿½ï¿½DC1ï¿½ï¿½DC2ï¿½ï¿½ï¿½ï¿½Òªï¿½Þ¸ï¿½SAMPLE_COMM_VI_GetComboDevBySensorm()ï¿½ï¿½
     stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev; 
     stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
 
@@ -2135,6 +2137,8 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
     step2:  Get  input size
     *************************************************/
     s32Ret = SAMPLE_COMM_VI_GetSizeBySensor(stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType, &enPicSize);
+    
+    SAMPLE_PRT("enPicSize = %d\n", enPicSize); // by alex
 
     if (HI_SUCCESS != s32Ret)
     {
@@ -2143,6 +2147,8 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
     }
 
     s32Ret = SAMPLE_COMM_SYS_GetPicSize(enPicSize, &stSize);
+    
+    SAMPLE_PRT("stSize.u32Width = %d, stSize.u32Height = %d\n", stSize.u32Width, stSize.u32Height); // by alex
 
     if (HI_SUCCESS != s32Ret)
     {
@@ -2179,11 +2185,17 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
         SAMPLE_COMM_SYS_Exit();
         return s32Ret;
     }
+    else
+    {
+    	asm("NOP");
+    }
 
     /************************************************
     step4:  Init VI and VO
     *************************************************/
     SAMPLE_COMM_VO_GetDefConfig(&stVoConfig);
+    
+    stVoConfig.enIntfSync = VO_OUTPUT_1080P60;
     s32Ret = SAMPLE_VIO_StartViVo(&stViConfig, &stVoConfig);
 
     if (HI_SUCCESS != s32Ret)

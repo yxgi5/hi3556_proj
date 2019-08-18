@@ -2096,6 +2096,7 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
 
     DYNAMIC_RANGE_E    enDynamicRange = DYNAMIC_RANGE_SDR8;
     PIXEL_FORMAT_E     enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    //PIXEL_FORMAT_E     enPixFormat    = PIXEL_FORMAT_RGB_BAYER_12BPP;
     VIDEO_FORMAT_E     enVideoFormat  = VIDEO_FORMAT_LINEAR;
     COMPRESS_MODE_E    enCompressMode = COMPRESS_MODE_NONE;
     VI_VPSS_MODE_E     enMastPipeMode = VI_OFFLINE_VPSS_OFFLINE;
@@ -2215,7 +2216,7 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
         SAMPLE_PRT("SAMPLE_COMM_VI_Bind_VO failed with %#x!\n", s32Ret);
         goto EXIT1;
     }
-
+/*
     stLDCAttr.bEnable = HI_TRUE;
     stLDCAttr.stAttr.bAspect = 0;
     stLDCAttr.stAttr.s32XRatio = 100;
@@ -2232,7 +2233,6 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
         SAMPLE_PRT("HI_MPI_VI_SetChnLDCAttr failed witfh %d\n", s32Ret);
         goto EXIT;
     }
-
 
     stSpreadAttr.bEnable        = HI_TRUE;
     stSpreadAttr.u32SpreadCoef  = 16;
@@ -2281,7 +2281,7 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
         goto EXIT;
     }
 
-
+*/
     PAUSE();
 
     SAMPLE_COMM_VI_UnBind_VO(ViPipe, ViChn, VoDev, VoChn);
@@ -2291,6 +2291,413 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
 
     EXIT:
     SAMPLE_COMM_SYS_Exit();
+
+    return s32Ret;
+}
+
+
+HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
+{
+    HI_S32             s32Ret;
+    VI_DEV             ViDev               = 5; // ??????3-2 Hi3559AV100 DEV?????? MIPI/SLVS/BT.1120/BT.656/BT601/DC???ó?úμ?°ó?¨1????μ
+    VI_PIPE            ViPipe              = 0; // ??????3-2 Hi3559AV100 DEV?????? MIPI/SLVS/BT.1120/BT.656/BT601/DC???ó?úμ?°ó?¨1????μ
+    VI_CHN             ViChn               = 0;
+    MIPI_DEV           MipiDev 	           = 0;
+    VI_DEV_ATTR_S      stDevAttr;
+    VI_PIPE_ATTR_S     stPipeAttr;
+    VI_CHN_ATTR_S      stChnAttr;
+    VI_DEV_BIND_PIPE_S stDevBindPipe;
+    
+    VB_CONFIG_S        stVbConf;
+    HI_U32             u32BlkSize;
+    SIZE_S             stSize;
+    
+    VI_VPSS_MODE_S      stVIVPSSMode;
+    
+    HI_S32              fd;
+    combo_dev_t           devno = 0;
+    sns_clk_source_t       SnsDev = 0;
+    combo_dev_attr_t    stcomboDevAttr;
+    
+    VO_DEV             VoDev               = SAMPLE_VO_DEV_DHD0;
+    VO_CHN             VoChn               = 0;
+    SAMPLE_VO_CONFIG_S stVoConfig  = {0};
+    
+    
+    HI_U32              u32SnsId = 0;
+    ISP_PUB_ATTR_S      stPubAttr;
+    HI_S32              s32BusId = 0;
+    HI_S32              s32SnsId = 0;
+    
+    VI_PIPE         aPipe = 0;
+    
+    stSize.u32Width = 1280;
+    stSize.u32Height = 720;
+    
+    stDevAttr.enIntfMode = VI_MODE_DIGITAL_CAMERA;
+    stDevAttr.enWorkMode = VI_WORK_MODE_1Multiplex;
+    stDevAttr.au32ComponentMask [0] = 0xFFF00000;
+    stDevAttr.au32ComponentMask [1] = 0x0;
+    stDevAttr.enScanMode = VI_SCAN_PROGRESSIVE;
+    stDevAttr.as32AdChnId[0] = -1;
+    stDevAttr.as32AdChnId[1] = -1;
+    stDevAttr.as32AdChnId[2] = -1;
+    stDevAttr.as32AdChnId[3] = -1;
+    stDevAttr.enDataSeq = VI_DATA_SEQ_YUYV;
+    stDevAttr.stSize.u32Width = 1280;
+    stDevAttr.stSize.u32Height = 720;
+    stDevAttr.stSynCfg.enVsync = VI_VSYNC_FIELD;
+    stDevAttr.stSynCfg.enVsyncNeg = VI_VSYNC_NEG_HIGH;
+    stDevAttr.stSynCfg.enHsync = VI_HSYNC_VALID_SINGNAL;
+    stDevAttr.stSynCfg.enHsyncNeg = VI_HSYNC_NEG_HIGH;
+    stDevAttr.stSynCfg.enVsyncValid = VI_VSYNC_VALID_SINGAL;
+    stDevAttr.stSynCfg.enVsyncValidNeg = VI_VSYNC_VALID_NEG_HIGH;
+    stDevAttr.stSynCfg.stTimingBlank.u32HsyncHfb = 370;
+    stDevAttr.stSynCfg.stTimingBlank.u32HsyncAct = 1280;
+    stDevAttr.stSynCfg.stTimingBlank.u32HsyncHbb = 0;
+    stDevAttr.stSynCfg.stTimingBlank.u32VsyncVfb = 6;
+    stDevAttr.stSynCfg.stTimingBlank.u32VsyncVact = 720;
+    stDevAttr.stSynCfg.stTimingBlank.u32VsyncVbb = 6;
+    stDevAttr.stSynCfg.stTimingBlank.u32VsyncVbfb = 0;
+    stDevAttr.stSynCfg.stTimingBlank.u32VsyncVbact = 0;
+    stDevAttr.stSynCfg.stTimingBlank.u32VsyncVbbb = 0;
+    stDevAttr.enInputDataType = VI_DATA_TYPE_RGB;
+    stDevAttr.bDataReverse = HI_FALSE;
+    stDevAttr.stSize.u32Width = 1280;
+    stDevAttr.stSize.u32Height = 720;
+    stDevAttr.stBasAttr.stSacleAttr.stBasSize.u32Width = 1280;
+    stDevAttr.stBasAttr.stSacleAttr.stBasSize.u32Height = 720;
+    stDevAttr.stBasAttr.stRephaseAttr.enHRephaseMode = VI_REPHASE_MODE_NONE;
+    stDevAttr.stBasAttr.stRephaseAttr.enVRephaseMode = VI_REPHASE_MODE_NONE;
+    stDevAttr.stWDRAttr.enWDRMode = WDR_MODE_NONE;
+    stDevAttr.stWDRAttr.u32CacheLine = 0;
+    stDevAttr.enDataRate = DATA_RATE_X1;
+    
+
+    hi_memset(&stVbConf, sizeof(VB_CONFIG_S), 0, sizeof(VB_CONFIG_S));
+    stVbConf.u32MaxPoolCnt              = 2;
+
+    u32BlkSize = COMMON_GetPicBufferSize(stSize.u32Width, stSize.u32Height, SAMPLE_PIXEL_FORMAT, DATA_BITWIDTH_10, COMPRESS_MODE_SEG, DEFAULT_ALIGN);
+    stVbConf.astCommPool[0].u64BlkSize  = u32BlkSize;
+    stVbConf.astCommPool[0].u32BlkCnt   = 10;
+
+    u32BlkSize = VI_GetRawBufferSize(stSize.u32Width, stSize.u32Height, PIXEL_FORMAT_RGB_BAYER_16BPP, COMPRESS_MODE_NONE, DEFAULT_ALIGN);
+    stVbConf.astCommPool[1].u64BlkSize  = u32BlkSize;
+    stVbConf.astCommPool[1].u32BlkCnt   = 4;
+
+    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConf);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("system init failed with %d!\n", s32Ret);
+        SAMPLE_COMM_SYS_Exit();
+        return s32Ret;
+    }
+    
+    s32Ret = SAMPLE_COMM_VI_SetMipiHsMode(LANE_DIVIDE_MODE_7);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VI_SetMipiHsMode failed!\n");
+        return HI_FAILURE;
+    }
+    
+    fd = open("/dev/hi_mipi", O_RDWR);
+    if (fd < 0)
+    {
+        SAMPLE_PRT("open hi_mipi dev failed\n");
+        return HI_FAILURE;
+    }
+
+    s32Ret = ioctl(fd, HI_MIPI_RESET_MIPI, &devno);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("RESET_MIPI %d failed\n", devno);
+        return HI_FAILURE;
+    }
+    
+    s32Ret = ioctl(fd, HI_MIPI_ENABLE_SENSOR_CLOCK, &SnsDev);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MIPI_ENABLE_SENSOR_CLOCK failed\n");
+        return HI_FAILURE;
+    }
+    
+    s32Ret = ioctl(fd, HI_MIPI_RESET_SENSOR, &SnsDev);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MIPI_RESET_SENSOR failed\n");
+        return HI_FAILURE;
+    }
+    
+    
+    stcomboDevAttr.devno = 0;
+    stcomboDevAttr.input_mode = INPUT_MODE_CMOS;
+    stcomboDevAttr.data_rate = DATA_RATE_X1;
+    stcomboDevAttr.img_rect.x = 0;
+    stcomboDevAttr.img_rect.y = 0;
+    stcomboDevAttr.img_rect.width = 1280;
+    stcomboDevAttr.img_rect.height = 720;
+    s32Ret = ioctl(fd, HI_MIPI_SET_DEV_ATTR, &stcomboDevAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("MIPI_SET_DEV_ATTR failed\n");
+        return HI_FAILURE;
+    }
+    
+    s32Ret = ioctl(fd, HI_MIPI_UNRESET_MIPI, &devno);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("UNRESET_MIPI %d failed\n", devno);
+        return HI_FAILURE;
+    }
+    
+    s32Ret = ioctl(fd, HI_MIPI_UNRESET_SENSOR, &SnsDev);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MIPI_UNRESET_SENSOR failed\n");
+        return HI_FAILURE;
+    }
+    
+    s32Ret = HI_MPI_SYS_GetVIVPSSMode(&stVIVPSSMode);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Get VI-VPSS mode Param failed with %#x!\n", s32Ret);
+
+        return HI_FAILURE;
+    }
+    
+    stVIVPSSMode.aenMode[0] = VI_OFFLINE_VPSS_OFFLINE;
+    s32Ret = HI_MPI_SYS_SetVIVPSSMode(&stVIVPSSMode);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Set VI-VPSS mode Param failed with %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+    s32Ret = HI_MPI_VI_SetDevAttr(ViDev, &stDevAttr);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Set dev attributes failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+    s32Ret = HI_MPI_VI_EnableDev(ViDev);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Enable dev failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+//    s32Ret = HI_MPI_VI_SetMipiBindDev(ViDev, MipiDev);
+//    if (s32Ret != HI_SUCCESS)
+//    {
+//        printf("Mipi bind dev failed with error code %#x!\n", s32Ret);
+//        return HI_FAILURE;
+//    }
+
+	stDevBindPipe.u32Num = 1;
+    stDevBindPipe.PipeId[0] = ViPipe;
+    
+    s32Ret = HI_MPI_VI_SetDevBindPipe(ViDev, &stDevBindPipe);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Dev bind pipe failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+	stPipeAttr.enPipeBypassMode = VI_PIPE_BYPASS_NONE;
+    stPipeAttr.bIspBypass = HI_FALSE;
+    stPipeAttr.bYuvSkip = HI_FALSE;
+    stPipeAttr.u32MaxW = 1280;
+    stPipeAttr.u32MaxH = 720;
+    stPipeAttr.enPixFmt = PIXEL_FORMAT_RGB_BAYER_12BPP;
+    stPipeAttr.enCompressMode = COMPRESS_MODE_LINE;
+    stPipeAttr.enBitWidth = DATA_BITWIDTH_12;
+    stPipeAttr.bNrEn = HI_TRUE;
+    stPipeAttr.stNrAttr.enPixFmt = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    //stPipeAttr.stNrAttr.enBitWidth = DATA_BITWIDTH_8;
+    stPipeAttr.stNrAttr.enBitWidth = DATA_BITWIDTH_10;
+    stPipeAttr.stNrAttr.enNrRefSource = VI_NR_REF_FROM_RFR;
+    //stPipeAttr.stNrAttr.enCompressMode = COMPRESS_MODE_FRAME;
+    stPipeAttr.stNrAttr.enCompressMode = COMPRESS_MODE_NONE;
+    stPipeAttr.bSharpenEn = HI_FALSE;
+    stPipeAttr.stFrameRate.s32SrcFrameRate = -1;
+    stPipeAttr.stFrameRate.s32DstFrameRate = -1;  
+    stPipeAttr.bDiscardProPic = 0;
+     
+    s32Ret = HI_MPI_VI_CreatePipe(ViPipe, &stPipeAttr);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Creat pipe failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+    stChnAttr.stSize.u32Width = 1280;
+    stChnAttr.stSize.u32Height = 720;
+    stChnAttr.enDynamicRange = DYNAMIC_RANGE_SDR8;
+    stChnAttr.enPixelFormat = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    stChnAttr.enVideoFormat= VIDEO_FORMAT_LINEAR;
+    stChnAttr.enCompressMode = COMPRESS_MODE_NONE;
+    stChnAttr.bMirror = HI_FALSE;
+    stChnAttr.bFlip = HI_FALSE;
+    stChnAttr.u32Depth = 0;
+    //stChnAttr.stFrameRate.s32SrcFrameRate = -1;
+    //stChnAttr.stFrameRate.s32DstFrameRate = -1;
+    stChnAttr.stFrameRate.s32SrcFrameRate = 30;
+    stChnAttr.stFrameRate.s32DstFrameRate = 30;
+
+    s32Ret = HI_MPI_VI_StartPipe (ViPipe);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Start pipe failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+    s32Ret = HI_MPI_VI_SetChnAttr(ViPipe,ViChn,&stChnAttr);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Set chn attributes failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+    s32Ret = HI_MPI_VI_EnableChn(ViPipe,ViChn);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Enable chn failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+    
+    /* now, vi is capturing images, you can do something else ... */
+    
+    SAMPLE_COMM_ISP_GetIspAttrBySns(OMNIVISION_OV9712_DC_720P_30FPS_12BIT, &stPubAttr);
+
+	stPubAttr.stWndRect.s32X = 0;
+	stPubAttr.stWndRect.s32Y = 0;
+	stPubAttr.stWndRect.u32Width = 1280;
+	stPubAttr.stWndRect.u32Height = 720;
+	//stPubAttr.stSnsSize.u32Width = 1280;
+	//stPubAttr.stSnsSize.u32Height = 720;
+	stPubAttr.stSnsSize.u32Width = 1296;
+	stPubAttr.stSnsSize.u32Height = 818;
+	stPubAttr.f32FrameRate = 30;
+	stPubAttr.enBayer = BAYER_BGGR;
+    stPubAttr.enWDRMode = WDR_MODE_NONE;
+    stPubAttr.u8SnsMode = 0;
+    
+    
+    s32Ret = SAMPLE_COMM_ISP_Sensor_Regiter_callback(ViPipe, u32SnsId);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("register sensor %d to ISP %d failed\n", u32SnsId, ViPipe);
+        SAMPLE_COMM_ISP_Stop(ViPipe);
+        return HI_FAILURE;
+    }
+    
+    s32Ret = SAMPLE_COMM_ISP_BindSns(ViPipe, u32SnsId, OMNIVISION_OV9712_DC_720P_30FPS_12BIT, s32BusId);
+    if (HI_SUCCESS != s32Ret)
+	{
+		SAMPLE_PRT("register sensor %d bus id %d failed\n", u32SnsId, s32BusId);
+		SAMPLE_COMM_ISP_Stop(ViPipe);
+		return HI_FAILURE;
+	}
+/*    
+    s32Ret = SAMPLE_COMM_ISP_Aelib_Callback(ViPipe);
+
+	if (HI_SUCCESS != s32Ret)
+	{
+		SAMPLE_PRT("SAMPLE_COMM_ISP_Aelib_Callback failed\n");
+		SAMPLE_COMM_ISP_Stop(ViPipe);
+		return HI_FAILURE;
+	}
+
+	s32Ret = SAMPLE_COMM_ISP_Awblib_Callback(ViPipe);
+
+	if (HI_SUCCESS != s32Ret)
+	{
+		SAMPLE_PRT("SAMPLE_COMM_ISP_Awblib_Callback failed\n");
+		SAMPLE_COMM_ISP_Stop(ViPipe);
+		return HI_FAILURE;
+	}
+*/
+	s32Ret = HI_MPI_ISP_MemInit(ViPipe);
+
+	if (s32Ret != HI_SUCCESS)
+	{
+		SAMPLE_PRT("Init Ext memory failed with %#x!\n", s32Ret);
+		SAMPLE_COMM_ISP_Stop(ViPipe);
+		return HI_FAILURE;
+	}
+
+	s32Ret = HI_MPI_ISP_SetPubAttr(ViPipe, &stPubAttr);
+
+	if (s32Ret != HI_SUCCESS)
+	{
+		SAMPLE_PRT("SetPubAttr failed with %#x!\n", s32Ret);
+		SAMPLE_COMM_ISP_Stop(ViPipe);
+		return HI_FAILURE;
+	}
+
+	s32Ret = HI_MPI_ISP_Init(ViPipe);
+
+	if (s32Ret != HI_SUCCESS)
+	{
+		SAMPLE_PRT("ISP Init failed with %#x!\n", s32Ret);
+		SAMPLE_COMM_ISP_Stop(ViPipe);
+		return HI_FAILURE;
+	}
+
+	s32Ret = SAMPLE_COMM_ISP_Run(&aPipe);
+
+	if (s32Ret != HI_SUCCESS)
+	{
+		SAMPLE_PRT("ISP Run failed with %#x!\n", s32Ret);
+		SAMPLE_COMM_ISP_Stop(ViPipe);
+		return HI_FAILURE;
+	}
+    
+    
+    SAMPLE_COMM_VO_GetDefConfig(&stVoConfig);
+    stVoConfig.enIntfSync = VO_OUTPUT_1080P60;
+    
+    s32Ret = SAMPLE_COMM_VO_StartVO(&stVoConfig);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_VIO start VO failed with %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+    
+    s32Ret = SAMPLE_COMM_VI_Bind_VO(ViPipe, ViChn, VoDev, VoChn);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VI_Bind_VO failed with %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+    
+    PAUSE();
+    
+    s32Ret = HI_MPI_VI_DisableChn(ViPipe,ViChn);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Disable chn failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+    s32Ret = HI_MPI_VI_StopPipe (ViPipe);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Stop pipe failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+    s32Ret = HI_MPI_VI_DestroyPipe(ViPipe);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Destroy pipe failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+    s32Ret = HI_MPI_VI_DisableDev(ViDev);
+    if (s32Ret != HI_SUCCESS)
+    {
+        printf("Disable dev failed with error code %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
 
     return s32Ret;
 }
@@ -2363,6 +2770,10 @@ int main(int argc, char* argv[])
 			
 		case 8:
             s32Ret = SAMPLE_VIO_OV9712_PreView(enVoIntfType);
+            break;
+            
+        case 9:
+            s32Ret = SAMPLE_xxx_PreView(enVoIntfType);
             break;
             
         default:

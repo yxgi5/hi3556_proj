@@ -197,6 +197,7 @@ ISP_PUB_ATTR_S ISP_PUB_ATTR_OV9712_720P_30FPS =
 {
     {0, 0, 1280, 720},
     {1296, 818}, // P30 @ ov9712.pdf
+    //{1280, 720},
     30,
     BAYER_BGGR,
     WDR_MODE_NONE,

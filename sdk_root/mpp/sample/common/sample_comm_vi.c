@@ -46,6 +46,36 @@ extern "C" {
 
 SAMPLE_VI_DUMP_THREAD_INFO_S g_stViDumpRawThreadInfo;
 
+
+//	combo_dev_attr_t MIPI_BT1120_ATTR =
+//	{
+//	    .devno = 2,
+//	    .input_mode = INPUT_MODE_BT1120,
+//	    .data_rate = DATA_RATE_X1,
+//	    .img_rect = {0, 0, 1920, 1080},
+//	    {
+//	        .mipi_attr =
+//	        {
+//	            DATA_TYPE_RAW_12BIT,
+//	            HI_MIPI_WDR_MODE_NONE,
+//	            {0, 1, 2, 3, -1, -1, -1, -1}
+//	        }
+//	    }
+//	};
+
+combo_dev_attr_t DC_OV9712_ATTR =
+{
+    .devno = 0,
+    .input_mode = INPUT_MODE_CMOS,
+    .data_rate = DATA_RATE_X1,
+    .img_rect = {0, 0, 1280, 720},
+    {
+        .mipi_attr =
+        {
+        }
+    }
+};
+
 combo_dev_attr_t MIPI_4lane_CHN0_SENSOR_IMX477_12BIT_12M_NOWDR_ATTR =
 {
     .devno = 0,
@@ -1035,7 +1065,7 @@ VI_DEV_ATTR_S DEV_ATTR_OV9712_DC_720P_BASE =
     /* synchronization information */
     {
     /*port_vsync   port_vsync_neg     port_hsync        port_hsync_neg        */
-    VI_VSYNC_PULSE, VI_VSYNC_NEG_HIGH, VI_HSYNC_VALID_SINGNAL,VI_HSYNC_NEG_HIGH,VI_VSYNC_VALID_SINGAL,VI_VSYNC_VALID_NEG_LOW,
+    VI_VSYNC_FIELD, VI_VSYNC_NEG_HIGH, VI_HSYNC_VALID_SINGNAL,VI_HSYNC_NEG_HIGH,VI_VSYNC_VALID_SINGAL,VI_VSYNC_VALID_NEG_HIGH,
 
     /*hsync_hfb    hsync_act    hsync_hhb*/
     {370,            1280,        0,
@@ -1940,6 +1970,9 @@ HI_S32 SAMPLE_COMM_VI_GetComboAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, combo_dev_t
 
         case SONY_IMX277_SLVS_2M_240FPS_12BIT:
             hi_memcpy(pstComboAttr, sizeof(combo_dev_attr_t), &SLVS_6lane_CHN0_SENSOR_IMX277_12BIT_2M_NOWDR_ATTR, sizeof(combo_dev_attr_t));
+            break;
+        case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
+            hi_memcpy(pstComboAttr, sizeof(combo_dev_attr_t), &DC_OV9712_ATTR, sizeof(combo_dev_attr_t));
             break;
         default:
             SAMPLE_PRT("not support enSnsType: %d\n", enSnsType);

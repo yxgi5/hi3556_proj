@@ -2370,7 +2370,7 @@ HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
     stDevAttr.stBasAttr.stRephaseAttr.enHRephaseMode = VI_REPHASE_MODE_NONE;
     stDevAttr.stBasAttr.stRephaseAttr.enVRephaseMode = VI_REPHASE_MODE_NONE;
     stDevAttr.stWDRAttr.enWDRMode = WDR_MODE_NONE;
-    stDevAttr.stWDRAttr.u32CacheLine = 0;
+    stDevAttr.stWDRAttr.u32CacheLine = 720;
     stDevAttr.enDataRate = DATA_RATE_X1;
     
 
@@ -2511,7 +2511,7 @@ HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
     stPipeAttr.u32MaxH = 720;
     stPipeAttr.enPixFmt = PIXEL_FORMAT_RGB_BAYER_12BPP;
     stPipeAttr.enCompressMode = COMPRESS_MODE_LINE;
-    stPipeAttr.enBitWidth = DATA_BITWIDTH_12;
+    stPipeAttr.enBitWidth = DATA_BITWIDTH_10;
     stPipeAttr.bNrEn = HI_TRUE;
     stPipeAttr.stNrAttr.enPixFmt = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
     //stPipeAttr.stNrAttr.enBitWidth = DATA_BITWIDTH_8;
@@ -2540,10 +2540,10 @@ HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
     stChnAttr.bMirror = HI_FALSE;
     stChnAttr.bFlip = HI_FALSE;
     stChnAttr.u32Depth = 0;
-    //stChnAttr.stFrameRate.s32SrcFrameRate = -1;
-    //stChnAttr.stFrameRate.s32DstFrameRate = -1;
-    stChnAttr.stFrameRate.s32SrcFrameRate = 30;
-    stChnAttr.stFrameRate.s32DstFrameRate = 30;
+    stChnAttr.stFrameRate.s32SrcFrameRate = -1;
+    stChnAttr.stFrameRate.s32DstFrameRate = -1;
+    //stChnAttr.stFrameRate.s32SrcFrameRate = 30;
+    //stChnAttr.stFrameRate.s32DstFrameRate = 30;
 
     s32Ret = HI_MPI_VI_StartPipe (ViPipe);
     if (s32Ret != HI_SUCCESS)

@@ -948,7 +948,7 @@ static HI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S *
         return HI_FAILURE;
     }
 
-    if ((pstSensorImageMode->u16Width <= 1280) && (pstSensorImageMode->u16Height <= 720))
+    if ((pstSensorImageMode->u16Width <= 1296) && (pstSensorImageMode->u16Height <= 818))
     {
         if (WDR_MODE_NONE == pstSnsState->enWDRMode)
         {

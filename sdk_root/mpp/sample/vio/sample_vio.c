@@ -2428,7 +2428,6 @@ HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
         return HI_FAILURE;
     }
     
-    
     stcomboDevAttr.devno = 0;
     stcomboDevAttr.input_mode = INPUT_MODE_CMOS;
     stcomboDevAttr.data_rate = DATA_RATE_X1;
@@ -2442,7 +2441,7 @@ HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
         SAMPLE_PRT("MIPI_SET_DEV_ATTR failed\n");
         return HI_FAILURE;
     }
-    
+
     s32Ret = ioctl(fd, HI_MIPI_UNRESET_MIPI, &devno);
     if (HI_SUCCESS != s32Ret)
     {
@@ -2514,8 +2513,8 @@ HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
     stPipeAttr.enBitWidth = DATA_BITWIDTH_10;
     stPipeAttr.bNrEn = HI_TRUE;
     stPipeAttr.stNrAttr.enPixFmt = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
-    //stPipeAttr.stNrAttr.enBitWidth = DATA_BITWIDTH_8;
-    stPipeAttr.stNrAttr.enBitWidth = DATA_BITWIDTH_10;
+    stPipeAttr.stNrAttr.enBitWidth = DATA_BITWIDTH_8;
+    //stPipeAttr.stNrAttr.enBitWidth = DATA_BITWIDTH_10;
     stPipeAttr.stNrAttr.enNrRefSource = VI_NR_REF_FROM_RFR;
     //stPipeAttr.stNrAttr.enCompressMode = COMPRESS_MODE_FRAME;
     stPipeAttr.stNrAttr.enCompressMode = COMPRESS_MODE_NONE;

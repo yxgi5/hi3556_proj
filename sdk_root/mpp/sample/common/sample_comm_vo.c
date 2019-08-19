@@ -167,24 +167,24 @@ combo_dev_cfg_t MIPI_TX_720X1280_60_CONFIG =
 
 combo_dev_cfg_t MIPI_TX_1080X1920_60_CONFIG =
 {
-    .devno = 0,
-    .lane_id = {0, 1, 2, 3},
-    .output_mode = OUTPUT_MODE_DSI_VIDEO,
-    .output_format = OUT_FORMAT_RGB_24_BIT,
-    .video_mode =  BURST_MODE,
-    .sync_info = {
-        .vid_pkt_size     = 1080,
-        .vid_hsa_pixels   = 8,
-        .vid_hbp_pixels   = 20,
-        .vid_hline_pixels = 1238,
-        .vid_vsa_lines    = 10,
-        .vid_vbp_lines    = 26,
-        .vid_vfp_lines    = 16,
-        .vid_active_lines = 1920,
-        .edpi_cmd_size = 0,
+    .devno = 0, // MIPI Tx 设备号
+    .lane_id = {0, 1, 2, 3}, // 发送端(sensor)和接收端(MIPI Rx) Lane 的对应关系。未使用的 Lane 设置为-1。
+    .output_mode = OUTPUT_MODE_DSI_VIDEO, // MIPI Tx 输出模式
+    .output_format = OUT_FORMAT_RGB_24_BIT, // MIPI Tx 输出格式
+    .video_mode =  BURST_MODE, // MIPI Tx 视频模式
+    .sync_info = { // MIPI Tx 设备的同步信息
+        .vid_pkt_size     = 1080, // 接收包大小
+        .vid_hsa_pixels   = 8, // 输入行同步脉冲区像素个数 = hpw
+        .vid_hbp_pixels   = 20, // 输入后消隐区像素个数
+        .vid_hline_pixels = 1238, // 检测到的每行总像素个数, hfp = 1238-1080-8-20 = 130
+        .vid_vsa_lines    = 10, // 检测到的帧同步脉冲行数 = vpw
+        .vid_vbp_lines    = 26, // 帧同步脉冲后消隐区行数
+        .vid_vfp_lines    = 16, // 帧同步脉冲前消隐区行数
+        .vid_active_lines = 1920, // VACTIVE 行数
+        .edpi_cmd_size = 0, // 写内存命令字节数
     },
-    .phy_data_rate = 945,
-    .pixel_clk = 148500,
+    .phy_data_rate = 945, // MIPI Tx 输入速率。 单位为 mbps
+    .pixel_clk = 148500, // 像素时钟。单位为 KHz
 };
 
 
@@ -1361,6 +1361,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
     HI_S32 s32Ret;
     cmd_info_t cmd_info;
 
+	//0x1117006c 0x00eeff23;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0xeeff;
     cmd_info.data_type = 0x23;
@@ -1375,6 +1376,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(1000);
 
+	//0x1117006c 0x00401823;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x4018;
     cmd_info.data_type = 0x23;
@@ -1389,6 +1391,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(10000);
 
+	//0x1117006c 0x00001823;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x18;
     cmd_info.data_type = 0x23;
@@ -1403,6 +1406,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(20000);
 
+	//0x1117006c 0x0000ff23;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0xff;
     cmd_info.data_type = 0x23;
@@ -1417,6 +1421,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(10000);
 
+	//0x1117006c 0x0001fb23;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x1fb;
     cmd_info.data_type = 0x23;
@@ -1431,6 +1436,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(10000);
 
+	//0x1117006c 0x00013523;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x135;
     cmd_info.data_type = 0x23;
@@ -1445,6 +1451,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(10000);
 
+	//0x1117006c 0x00ff5123;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0xff51;
     cmd_info.data_type = 0x23;
@@ -1459,6 +1466,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(1000);
 
+	//0x1117006c 0x002c5323;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x2c53;
     cmd_info.data_type = 0x23;
@@ -1473,6 +1481,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(1000);
 
+	//0x1117006c 0x00015523;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x155;
     cmd_info.data_type = 0x23;
@@ -1487,6 +1496,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(1000);
 
+	//0x1117006c 0x0024d323;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x24d3;
     cmd_info.data_type = 0x23;
@@ -1501,6 +1511,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(10000);
 
+	//0x1117006c 0x0010d423;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x10d4;
     cmd_info.data_type = 0x23;
@@ -1515,6 +1526,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(10000);
 
+	//0x1117006c 0x00001105;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x11;
     cmd_info.data_type = 0x05;
@@ -1529,6 +1541,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 
     usleep(200000);
 
+	//0x1117006c 0x00002905;
     cmd_info.devno = 0;
     cmd_info.cmd_size = 0x29;
     cmd_info.data_type = 0x05;
@@ -1562,6 +1575,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen720x1280(HI_S32 s32fd)
     HI_U8      cmd[30];
     cmd_info_t cmd_info = {0};
 
+	//0x1117006c 0x00000023; // virtual channel ID: 0, data type: 0x23
     cmd_info.devno     = 0;
     cmd_info.cmd_size  = 0x00;
     cmd_info.data_type = 0x23;
@@ -1575,11 +1589,13 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen720x1280(HI_S32 s32fd)
     }
     usleep(1000);
 
-    //0x018712ff
+    //0x11170070 0x018712ff
+    //0x1117006c 0x00000429;
     cmd[0] = 0xff;
     cmd[1] = 0x12;
     cmd[2] = 0x87;
     cmd[3] = 0x01;
+    
     cmd[4] = 0x04;
     cmd_info.devno     = 0;
     cmd_info.cmd_size  = 5;

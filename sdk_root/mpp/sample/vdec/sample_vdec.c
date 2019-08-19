@@ -913,6 +913,187 @@ END1:
 }
 
 
+HI_S32 SAMPLE_COMM_VO_StartVO2(SAMPLE_VO_CONFIG_S *pstVoConfig)
+{
+    RECT_S                 stDefDispRect  = {0, 0, 1280, 720};
+    SIZE_S                 stDefImageSize = {1920, 1080};
+
+    /*******************************************
+    * VO device VoDev# information declaration.
+    ********************************************/
+    VO_DEV                 VoDev          = 0;
+    VO_LAYER               VoLayer        = 0;
+    SAMPLE_VO_MODE_E       enVoMode       = 0;
+    VO_INTF_TYPE_E         enVoIntfType   = VO_INTF_HDMI;
+    VO_INTF_SYNC_E         enIntfSync     = VO_OUTPUT_1080P30;
+    DYNAMIC_RANGE_E        enDstDyRg      = DYNAMIC_RANGE_SDR8;
+    VO_PART_MODE_E         enVoPartMode   = VO_PART_MODE_SINGLE;
+    VO_PUB_ATTR_S          stVoPubAttr    = {0};
+    VO_VIDEO_LAYER_ATTR_S  stLayerAttr    = {0};
+    VO_CSC_S               stVideoCSC     = {0};
+    HI_S32                 s32Ret         = HI_SUCCESS;
+
+    if (NULL == pstVoConfig)
+    {
+        SAMPLE_PRT("Error:argument can not be NULL\n");
+        return HI_FAILURE;
+    }
+    VoDev          = pstVoConfig->VoDev;
+    VoLayer        = pstVoConfig->VoDev;
+    enVoMode       = pstVoConfig->enVoMode;
+    enVoIntfType   = pstVoConfig->enVoIntfType;
+    enIntfSync     = pstVoConfig->enIntfSync;
+    enDstDyRg      = pstVoConfig->enDstDynamicRange;
+    enVoPartMode   = pstVoConfig->enVoPartMode;
+
+    /********************************
+    * Set and start VO device VoDev#.
+    *********************************/
+    stVoPubAttr.enIntfType  = enVoIntfType;
+    stVoPubAttr.enIntfSync  = enIntfSync;
+
+    stVoPubAttr.u32BgColor  = pstVoConfig->u32BgColor;
+
+    s32Ret = SAMPLE_COMM_VO_StartDev(VoDev, &stVoPubAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VO_StartDev failed!\n");
+        return s32Ret;
+    }
+
+    /******************************
+    * Set and start layer VoDev#.
+    ********************************/
+
+    s32Ret = SAMPLE_COMM_VO_GetWH(stVoPubAttr.enIntfSync,
+                                  &stLayerAttr.stDispRect.u32Width, &stLayerAttr.stDispRect.u32Height,
+                                  &stLayerAttr.u32DispFrmRt);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VO_GetWH failed!\n");
+        SAMPLE_COMM_VO_StopDev(VoDev);
+        return s32Ret;
+    }
+    else
+    {
+		SAMPLE_PRT("stLayerAttr.stDispRect.u32Width = %d\n\
+		stLayerAttr.stDispRect.u32Height= %d\n\
+		stLayerAttr.u32DispFrmRt = %d\n", \
+		stLayerAttr.stDispRect.u32Width, stLayerAttr.stDispRect.u32Height, stLayerAttr.u32DispFrmRt);
+	}
+	
+    stLayerAttr.bClusterMode     = HI_FALSE;
+    stLayerAttr.bDoubleFrame    = HI_FALSE;
+    stLayerAttr.enPixFormat       = pstVoConfig->enPixFormat;
+
+    stLayerAttr.stDispRect.s32X = 0;
+    stLayerAttr.stDispRect.s32Y = 0;
+
+    /******************************
+    // Set display rectangle if changed.
+    ********************************/
+    if (0 != memcmp(&pstVoConfig->stDispRect, &stDefDispRect, sizeof(RECT_S)))
+    {
+        stLayerAttr.stDispRect = pstVoConfig->stDispRect;
+    }
+    stLayerAttr.stImageSize.u32Width  = stLayerAttr.stDispRect.u32Width;
+    stLayerAttr.stImageSize.u32Height = stLayerAttr.stDispRect.u32Height;
+
+    stLayerAttr.stImageSize.u32Width  = stLayerAttr.stDispRect.u32Width;
+    stLayerAttr.stImageSize.u32Height = stLayerAttr.stDispRect.u32Height;
+
+    /******************************
+    //Set image size if changed.
+    ********************************/
+    if (0 != memcmp(&pstVoConfig->stImageSize, &stDefImageSize, sizeof(SIZE_S)))
+    {
+        stLayerAttr.stImageSize = pstVoConfig->stImageSize;
+    }
+    stLayerAttr.enDstDynamicRange     = pstVoConfig->enDstDynamicRange;
+
+
+    if (VO_PART_MODE_MULTI == enVoPartMode)
+    {
+        s32Ret = HI_MPI_VO_SetVideoLayerPartitionMode(VoLayer, enVoPartMode);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_SetVideoLayerPartitionMode failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+    }
+
+    if (pstVoConfig->u32DisBufLen)
+    {
+        s32Ret = HI_MPI_VO_SetDisplayBufLen(VoLayer, pstVoConfig->u32DisBufLen);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_SetDisplayBufLen failed with %#x!\n",s32Ret);
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+    }
+
+    s32Ret = SAMPLE_COMM_VO_StartLayer(VoLayer, &stLayerAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VO_Start video layer failed!\n");
+        SAMPLE_COMM_VO_StopDev(VoDev);
+        return s32Ret;
+    }
+
+    if(VO_INTF_MIPI == enVoIntfType)
+    {
+        s32Ret = HI_MPI_VO_GetVideoLayerCSC(VoLayer, &stVideoCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_GetVideoLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        stVideoCSC.enCscMatrix =VO_CSC_MATRIX_BT709_TO_RGB_PC;
+        s32Ret = HI_MPI_VO_SetVideoLayerCSC(VoLayer, &stVideoCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_SetVideoLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+    }
+
+    /******************************
+    * start vo channels.
+    ********************************/
+    s32Ret = SAMPLE_COMM_VO_StartChn(VoLayer, enVoMode);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VO_StartChn failed!\n");
+        SAMPLE_COMM_VO_StopLayer(VoLayer);
+        SAMPLE_COMM_VO_StopDev(VoDev);
+        return s32Ret;
+    }
+
+    /******************************
+    * Start hdmi device.
+    * Note : do this after vo device started.
+    ********************************/
+    if(VO_INTF_HDMI == enVoIntfType)
+    {
+        SAMPLE_COMM_VO_HdmiStartByDyRg(enIntfSync, enDstDyRg);
+    }
+
+    /******************************
+    * Start mipi_tx device.
+    * Note : do this after vo device started.
+    ********************************/
+    if(VO_INTF_MIPI == enVoIntfType)
+    {
+        SAMPLE_COMM_VO_StartMipiTx(enIntfSync);
+    }
+
+    return HI_SUCCESS;
+}
+
 HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
 {
     VB_CONFIG_S         stVbConfig;
@@ -1072,12 +1253,17 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
     /************************************************
     step6:  start VO Dev HD(DHD1-mipi_tx)
     *************************************************/
-    stDispSizeHD.u32Width  = 1080;
-    stDispSizeHD.u32Height = 1920;
+    //stDispSizeHD.u32Width  = 1080;
+    //stDispSizeHD.u32Height = 1920;
+    stDispSizeHD.u32Width  = 1280;
+    //stDispSizeHD.u32Height = 800;
+    stDispSizeHD.u32Height = 720;
     stVoConfigHD.VoDev                 = SAMPLE_VO_DEV_HD;
     stVoConfigHD.enVoIntfType          = VO_INTF_MIPI;
-    stVoConfigHD.enIntfSync            = VO_OUTPUT_1080x1920_60;
-    stVoConfigHD.enPicSize             = enDispPicSize;
+    //stVoConfigHD.enIntfSync            = VO_OUTPUT_1080x1920_60;
+    //stVoConfigHD.enIntfSync            = VO_OUTPUT_1280x800_60;
+    stVoConfigHD.enIntfSync            = VO_OUTPUT_720P60;
+    stVoConfigHD.enPicSize             = PIC_720P;
     stVoConfigHD.u32BgColor            = COLOR_RGB_CYN;
     stVoConfigHD.u32DisBufLen          = 3;
     stVoConfigHD.enDstDynamicRange     = DYNAMIC_RANGE_SDR8;
@@ -1090,7 +1276,7 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
     stVoConfigHD.stImageSize.u32Width  = stDispSizeHD.u32Width;
     stVoConfigHD.stImageSize.u32Height = stDispSizeHD.u32Height;
     stVoConfigHD.enVoPartMode          = VO_PART_MODE_SINGLE;
-    s32Ret = SAMPLE_COMM_VO_StartVO(&stVoConfigHD);
+    s32Ret = SAMPLE_COMM_VO_StartVO2(&stVoConfigHD);
     if(s32Ret != HI_SUCCESS)
     {
         SAMPLE_PRT("start VO %d fail for %#x!\n", stVoConfigHD.VoDev, s32Ret);

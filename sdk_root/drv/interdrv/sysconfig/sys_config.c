@@ -828,7 +828,7 @@ static int pinmux(void)
     hmdi_pin_mode();
 
     //#mipi_Tx
-    vo_mipi_tx_mode();
+    //vo_mipi_tx_mode();
 
     //i2s_pin_mux();
     

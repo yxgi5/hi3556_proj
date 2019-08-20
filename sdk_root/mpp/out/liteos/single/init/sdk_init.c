@@ -428,7 +428,7 @@ static void pinmux_cfg(void)
     //vo_lcd8bit_mode()
 
     // mipi_tx
-    vo_mipi_tx_mode();
+    // vo_mipi_tx_mode();
 
     hmdi_pin_mode();
 

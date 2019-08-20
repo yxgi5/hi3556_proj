@@ -828,9 +828,11 @@ static int pinmux(void)
     hmdi_pin_mode();
 
     //#mipi_Tx
-    //vo_mipi_tx_mode();
+    vo_mipi_tx_mode();
 
     //i2s_pin_mux();
+    
+    sn65dsi83_pinmux();
 
     return 0;
 }
@@ -882,6 +884,29 @@ static int sensor_config(char *s)
             }
         }
     }
+
+    return 0;
+}
+
+static int sn65dsi83_pinmux(void)
+{
+	//PWM GPIO14_0
+    SYS_WRITEL(reg_iocfg_base+0x0124 ,0x00001600);
+    SYS_WRITEL(reg_gpio_base+0xe004 ,0x00000001);
+    SYS_WRITEL(reg_gpio_base+0xe400 ,0x00000001); // dir
+    SYS_WRITEL(reg_gpio_base+0xe004 ,0x00000001);
+    
+    //BLE GPIO16_3
+    SYS_WRITEL(reg_iocfg_base+0x10d4 ,0x00001600);
+    SYS_WRITEL(reg_gpio_base+0x10020 ,0x00000008);
+    SYS_WRITEL(reg_gpio_base+0x10400 ,0x00000008); // dir
+    SYS_WRITEL(reg_gpio_base+0x10020 ,0x00000008);
+    
+    //CSE GPIO0_6
+    SYS_WRITEL(reg_iocfg_base+0x00b8 ,0x00001600);
+    SYS_WRITEL(reg_gpio_base+0x0100 ,0x00000040);
+    SYS_WRITEL(reg_gpio_base+0x0400 ,0x00000040); // dir
+    SYS_WRITEL(reg_gpio_base+0x0100 ,0x00000040);
 
     return 0;
 }

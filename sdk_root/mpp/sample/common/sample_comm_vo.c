@@ -1573,6 +1573,9 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 //    {
 //		SAMPLE_PRT("set I2C_SLAVE_FORCE fail\n");
 //	}
+
+	SAMPLE_PRT("wait here\n");
+	getchar();
 }
 
 /*

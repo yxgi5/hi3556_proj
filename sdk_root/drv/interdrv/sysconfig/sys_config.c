@@ -812,7 +812,8 @@ static int sn65dsi83_pinmux(void)
     SYS_WRITEL(reg_iocfg_base+0x00b8 ,0x00001600);
     SYS_WRITEL(reg_gpio_base+0x0100 ,0x00000040);
     SYS_WRITEL(reg_gpio_base+0x0400 ,0x00000040); // dir
-    SYS_WRITEL(reg_gpio_base+0x0100 ,0x00000040);
+    //SYS_WRITEL(reg_gpio_base+0x0100 ,0x00000040);
+    SYS_WRITEL(reg_gpio_base+0x0100 ,0x00000000); // after power on should be low
 
     return 0;
 }

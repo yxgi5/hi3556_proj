@@ -961,7 +961,7 @@ static int __init hi_sysconfig_init(void)
 
     pinmux();
 
-    ampunmute();
+    //ampunmute();
 
 	sensor_config(sensor_list);
 

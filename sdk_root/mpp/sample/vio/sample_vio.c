@@ -35,23 +35,23 @@ void SAMPLE_VIO_Usage(char* sPrgNm)
     printf("index:\n");
     
 
-    //P42@HiMPP V4.0 ý�崦����������ο�.pdf
-    //VI��VPSS�Ĺ���ģʽ
+    //P42@HiMPP V4.0 媒体处理软件开发参考.pdf
+    //VI和VPSS的工作模式
     
-    //parallel mode: ����ģʽ
-    //���ԽӴ���������ʱ������8K@30fpsʱ����ҪVI_CAP������VI_PROC���ڲ���ģʽ��
-    //VI_CAPֱ�Ӱ�һ֡�����͸�����VI_PROC���д���
-    //�ٸ�VPSS���д���
+    //parallel mode: 并行模式
+    //当对接大数据量的时序，例如8K@30fps时，需要VI_CAP与两个VI_PROC处于并行模式，
+    //VI_CAP直接把一帧数据送给两个VI_PROC并行处理
+    //再给VPSS并行处理
     printf("\t 0)parallel SDR8     VI - VPSS - VO - HDMI.      Embeded isp, phychn channel preview.\n");
 
-    //online mode������ģʽ
-    //��VI����VI_CAP��VI_PROC֮���������������䣬��ģʽ��VI_CAP����д��RAW���ݵ�DDR������ֱ�Ӱ��������͸�VI_PROC��
-    //��VPSS����VI_PROC��VPSS֮����������������䣬�ڴ�ģʽ��VI_PROC����д��YUV���ݵ�DDR������ֱ�Ӱ��������͸�VPSS��
+    //online mode：在线模式
+    //对VI而言VI_CAP与VI_PROC之间在线数据流传输，此模式下VI_CAP不会写出RAW数据到DDR，而是直接把数据流送给VI_PROC。
+    //对VPSS而言VI_PROC与VPSS之间的在线数据流传输，在此模式下VI_PROC不会写出YUV数据到DDR，而是直接把数据流送给VPSS。
     printf("\t 1)online   SDR8     VI - VPSS - VO - HDMI.      2 pipe, Embeded isp, phychn channel preview.\n");
 
-    //offline mode������ģʽ
-    //��VI����VI_CAPд��RAW���ݵ�DDR��Ȼ��VI_PROC��DDR��ȡRAW���ݽ��к���
-    //��VPSS����VI_PROCд��YUV���ݵ�DDR��Ȼ��VPSS��DDR��ȡYUV���ݽ��к���
+    //offline mode：离线模式
+    //对VI而言VI_CAP写出RAW数据到DDR，然后VI_PROC从DDR读取RAW数据进行后处理。
+    //对VPSS而言VI_PROC写出YUV数据到DDR，然后VPSS从DDR读取YUV数据进行后处理。
     printf("\t 2)offline  SDR8     VI - VPSS - VO - HDMI.      4 pipe, Embeded isp, phychn channel preview.\n");
     printf("\t 3)online  WDR+HDR10 VI - VPSS - VO - HDMI.      Embeded isp, phychn channel preview.\n");
     printf("\t 4)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+ROTATE.\n");
@@ -118,10 +118,10 @@ HI_S32 SAMPLE_VIO_StopViVo(SAMPLE_VI_CONFIG_S* pstViConfig, SAMPLE_VO_CONFIG_S* 
     return HI_SUCCESS;
 }
 
-//P43@HiMPP V4.0 ý�崦����������ο�.pdf
-//���ԽӴ���������ʱ������8K@30fpsʱ��
-//��ҪVI_CAP������VI_PROC���ڲ���ģʽ��
-//VI_CAPֱ�Ӱ�һ֡�����͸�����VI_PROC���д���
+//P43@HiMPP V4.0 媒体处理软件开发参考.pdf
+//当对接大数据量的时序，例如8K@30fps时，
+//需要VI_CAP与两个VI_PROC处于并行模式，
+//VI_CAP直接把一帧数据送给两个VI_PROC并行处理。
 HI_S32 SAMPLE_VIO_8K30_PARALLEL(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32                  s32Ret              = HI_SUCCESS;
@@ -1870,8 +1870,8 @@ HI_S32 SAMPLE_VIO_4K30_LDC_SPREAD(VO_INTF_TYPE_E enVoIntfType)
 HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32             s32Ret;
-    VI_DEV             ViDev               = 5; // ��3-2 Hi3559AV100 DEV�� MIPI/SLVS/BT.1120/BT.656/BT601/DC�ӿڵİ󶨹�ϵ
-    VI_PIPE            ViPipe              = 5; // ��3-2 Hi3559AV100 DEV�� MIPI/SLVS/BT.1120/BT.656/BT601/DC�ӿڵİ󶨹�ϵ
+    VI_DEV             ViDev               = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
+    VI_PIPE            ViPipe              = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
     VI_CHN             ViChn               = 0;
     HI_S32             s32WorkSnsId        = 0;
     VO_DEV             VoDev               = SAMPLE_VO_DEV_DHD0;
@@ -1903,8 +1903,8 @@ HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 
     stViConfig.as32WorkingViId[0]                        = 0;
     
-    // Ŀǰ��DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()Ŀǰ���ص�ComboDev����0��
-    // �����DC1��DC2����Ҫ�޸�SAMPLE_COMM_VI_GetComboDevBySensorm()��
+    // 目前是DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()目前返回的ComboDev就是0，
+    // 如果接DC1、DC2，就要修改SAMPLE_COMM_VI_GetComboDevBySensorm()了
     stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev;
     stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
 
@@ -2078,8 +2078,8 @@ HI_S32 SAMPLE_VIO_OV426_PreView(VO_INTF_TYPE_E enVoIntfType)
 HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32             s32Ret;
-    VI_DEV             ViDev               = 5; // ��3-2 Hi3559AV100 DEV�� MIPI/SLVS/BT.1120/BT.656/BT601/DC�ӿڵİ󶨹�ϵ
-    VI_PIPE            ViPipe              = 0; // ��3-2 Hi3559AV100 DEV�� MIPI/SLVS/BT.1120/BT.656/BT601/DC�ӿڵİ󶨹�ϵ
+    VI_DEV             ViDev               = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
+    VI_PIPE            ViPipe              = 0; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
     VI_CHN             ViChn               = 0;
     HI_S32             s32WorkSnsId        = 0;
     VO_DEV             VoDev               = SAMPLE_VO_DEV_DHD0;
@@ -2114,8 +2114,8 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
 
     stViConfig.as32WorkingViId[0]                        = 0;
 
-    // Ŀǰ��DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()Ŀǰ���ص�ComboDev����0��
-    // �����DC1��DC2����Ҫ�޸�SAMPLE_COMM_VI_GetComboDevBySensorm()��
+    // 目前是DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()目前返回的ComboDev就是0，
+    // 如果接DC1、DC2，就要修改SAMPLE_COMM_VI_GetComboDevBySensorm()了
     stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev; 
     stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
 

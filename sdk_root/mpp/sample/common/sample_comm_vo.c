@@ -23,6 +23,7 @@ extern "C" {
 
 #include "sample_comm.h"
 #include "hi_mipi_tx.h"
+//#include "hi_i2c.h"
 
 #define SAMPLE_VO_DEF_VALUE (-1)
 #define SAMPLE_VO_USE_DEFAULT_MIPI_TX 1
@@ -72,8 +73,8 @@ combo_dev_cfg_t MIPI_TX_1280X720_60_CONFIG =
         .vid_active_lines = 720,
         .edpi_cmd_size    = 0,
     },
-    .phy_data_rate = 459,
-    .pixel_clk = 74250,
+    .phy_data_rate = 459, // 1650*750*24*60/4=445.5
+    .pixel_clk = 74250, // // 1650*750*60
 };
 
 combo_dev_cfg_t MIPI_TX_1024X768_60_CONFIG =
@@ -1562,6 +1563,16 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1080x1920(HI_S32 fd)
 static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 {
 	// TODO: 
+//	HI_S32     fd;
+//	int ret;
+//	
+//	fd = open("/dev/i2c-2", O_RDWR, S_IRUSR | S_IWUSR);
+//	
+//	ret = ioctl(fd, I2C_SLAVE_FORCE, 0x2d);
+//    if (ret < 0)
+//    {
+//		SAMPLE_PRT("set I2C_SLAVE_FORCE fail\n");
+//	}
 }
 
 /*
@@ -4072,6 +4083,10 @@ void SAMPLE_COMM_VO_StartMipiTx(VO_INTF_SYNC_E enVoIntfSync)
     }
 
     close(fd);
+    
+    	
+	//SAMPLE_PRT("wait here\n");
+	//getchar();
     return ;
 }
 

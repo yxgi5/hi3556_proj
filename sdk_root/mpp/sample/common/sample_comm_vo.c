@@ -1617,7 +1617,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	
 	*(volatile unsigned int *)GPBDAT= (SN65DSI83_DISABLE & SN65DSI83_ENABLE_MASK) << SN65DSI83_ENABLE_BIT; 
 	usleep(10000);
-	*(volatile unsigned int *)GPBDAT= (SN65DSI83_ENABLE & SN65DSI83_ENABLE_MASK) << SN65DSI83_ENABLE_BIT; // sdk init SN65DSI83_DISABLE, so don't need set low again
+	*(volatile unsigned int *)GPBDAT= (SN65DSI83_ENABLE & SN65DSI83_ENABLE_MASK) << SN65DSI83_ENABLE_BIT;
+	usleep(100000);
 	
 	fd = open(SN65DSI83_BUS, O_RDWR, S_IRUSR | S_IWUSR);
 	

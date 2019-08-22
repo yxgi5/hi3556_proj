@@ -29,6 +29,11 @@ HI_VOID SAMPLE_VIO_VoInterface_Usage(HI_VOID)
     printf("\t 1) vo BT1120 output.\n");
 }
 
+static void delay_ms(int ms)
+{
+    usleep(ms * 1000);
+}
+
 void SAMPLE_VIO_Usage(char* sPrgNm)
 {
     printf("Usage : %s <index> <intf>\n", sPrgNm);
@@ -84,6 +89,8 @@ void SAMPLE_VIO_HandleSig(HI_S32 signo)
 HI_S32 SAMPLE_VIO_StartViVo(SAMPLE_VI_CONFIG_S* pstViConfig, SAMPLE_VO_CONFIG_S* pstVoConfig)
 {
     HI_S32  s32Ret;
+    //SAMPLE_VI_INFO_S*   pstViInfo = HI_NULL;
+    //VI_PIPE             ViPipe;
 
     s32Ret = SAMPLE_COMM_VI_StartVi(pstViConfig);
 
@@ -101,6 +108,23 @@ HI_S32 SAMPLE_VIO_StartViVo(SAMPLE_VI_CONFIG_S* pstViConfig, SAMPLE_VO_CONFIG_S*
         goto EXIT;
     }
 
+/*
+	pstViInfo = &pstViConfig->astViInfo[0];
+	ViPipe      = pstViInfo->stPipeInfo.aPipe[0];
+	
+    //s32Ret = ISP_SensorInit(ViPipe);
+    delay_ms(100);
+    ov9712_write_register(ViPipe, 0x2a, 0x9c);
+    ov9712_write_register(ViPipe, 0x2b, 0x06);
+    ov9712_write_register(ViPipe, 0x10, 0xf0);
+    ov9712_write_register(ViPipe, 0x00, 0x3f);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("start vi failed!\n");
+        return s32Ret;
+    }
+*/
     return s32Ret;
 
 EXIT:
@@ -2210,12 +2234,13 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
     step5:  Bind VI and VO
     *************************************************/
     s32Ret = SAMPLE_COMM_VI_Bind_VO(ViPipe, ViChn, VoDev, VoChn);
-
+    
     if (HI_SUCCESS != s32Ret)
     {
         SAMPLE_PRT("SAMPLE_COMM_VI_Bind_VO failed with %#x!\n", s32Ret);
         goto EXIT1;
     }
+    
 /*
     stLDCAttr.bEnable = HI_TRUE;
     stLDCAttr.stAttr.bAspect = 0;
@@ -2282,6 +2307,14 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
     }
 
 */
+
+/*
+	delay_ms(100);
+	ov9712_write_register(ViPipe, 0x2a, 0x9c);
+    ov9712_write_register(ViPipe, 0x2b, 0x06);
+    ov9712_write_register(ViPipe, 0x10, 0xf0);
+    ov9712_write_register(ViPipe, 0x00, 0x3f);
+*/    
     PAUSE();
 
     SAMPLE_COMM_VI_UnBind_VO(ViPipe, ViChn, VoDev, VoChn);

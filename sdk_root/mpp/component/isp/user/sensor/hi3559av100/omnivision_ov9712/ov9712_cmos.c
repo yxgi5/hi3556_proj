@@ -873,10 +873,12 @@ static HI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_REGS_INFO_S *pstSns
         pstSnsState->astRegsInfo[0].enSnsType = ISP_SNS_I2C_TYPE;
         pstSnsState->astRegsInfo[0].unComBus.s8I2cDev = g_aunOv9712BusInfo[ViPipe].s8I2cDev;
         pstSnsState->astRegsInfo[0].u8Cfg2ValidDelayMax = 2;
-        pstSnsState->astRegsInfo[0].u32RegNum = 5;
+        //pstSnsState->astRegsInfo[0].u32RegNum = 5;
+        pstSnsState->astRegsInfo[0].u32RegNum = 0;
         
 #if(CMOS_OV9712_SLOW_FRAMERATE_MODE == 0)
-		pstSnsState->astRegsInfo[0].u32RegNum = 7;
+		//pstSnsState->astRegsInfo[0].u32RegNum = 7;
+		pstSnsState->astRegsInfo[0].u32RegNum = 0;
 #endif		
 
         for (i = 0; i < pstSnsState->astRegsInfo[0].u32RegNum; i++)

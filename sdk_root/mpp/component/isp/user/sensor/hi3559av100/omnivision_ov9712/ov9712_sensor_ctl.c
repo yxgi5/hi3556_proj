@@ -141,6 +141,7 @@ int ov9712_write_register(VI_PIPE ViPipe, int addr, int data)
         idx++;
     }
 
+	//printf("[file]:%s [func]:%s [line]:%d:I2C_WRITING! #%x #%x\n", __FILE__, __FUNCTION__, __LINE__, addr, data);
     ret = write(g_fd[ViPipe], buf, (ov9712_addr_byte + ov9712_data_byte));
     if (ret < 0)
     {
@@ -247,7 +248,7 @@ void ov9712_linear_720p25_init(VI_PIPE ViPipe)
     ov9712_write_register(ViPipe, 0x12, 0x80);
     delay_ms(10);
     ov9712_write_register(ViPipe, 0x09, 0x10);
-    delay_ms(10);
+    //delay_ms(10);
     //Core Settings
     ov9712_write_register(ViPipe, 0x1e, 0x07);
     ov9712_write_register(ViPipe, 0x5f, 0x18);
@@ -259,12 +260,12 @@ void ov9712_linear_720p25_init(VI_PIPE ViPipe)
     ov9712_write_register(ViPipe, 0xc1, 0x80);
     ov9712_write_register(ViPipe, 0x0c, 0x30);
     ov9712_write_register(ViPipe, 0x6d, 0x02);
-	delay_ms(10);
+	//delay_ms(10);
     //DSP
     //ov9712_write_register(ViPipe, 0x96, 0xf1);
     ov9712_write_register(ViPipe, 0x96, 0x01);
     ov9712_write_register(ViPipe, 0xbc, 0x68);
-	delay_ms(10);
+	//delay_ms(10);
     //Resolution and Format
     ov9712_write_register(ViPipe, 0x12, 0x00);
     ov9712_write_register(ViPipe, 0x3b, 0x00);
@@ -289,7 +290,7 @@ void ov9712_linear_720p25_init(VI_PIPE ViPipe)
     ov9712_write_register(ViPipe, 0xbe, 0xb4);
     ov9712_write_register(ViPipe, 0x37, 0x02);
     ov9712_write_register(ViPipe, 0x60, 0x9d);
-	delay_ms(10);
+	//delay_ms(10);
     //YAVG
     ov9712_write_register(ViPipe, 0x4e, 0x55);
     ov9712_write_register(ViPipe, 0x4f, 0x55);
@@ -298,29 +299,31 @@ void ov9712_linear_720p25_init(VI_PIPE ViPipe)
     ov9712_write_register(ViPipe, 0x24, 0x55);
     ov9712_write_register(ViPipe, 0x25, 0x40);
     ov9712_write_register(ViPipe, 0x26, 0xa1);
-	delay_ms(10);
+	//delay_ms(10);
     //Clock
     ov9712_write_register(ViPipe, 0x5c, 0x52);
     ov9712_write_register(ViPipe, 0x5d, 0x00);
     ov9712_write_register(ViPipe, 0x11, 0x01);
+    //delay_ms(100);
     ov9712_write_register(ViPipe, 0x2a, 0x9c);
     ov9712_write_register(ViPipe, 0x2b, 0x06);
     ov9712_write_register(ViPipe, 0x2d, 0x00);
     ov9712_write_register(ViPipe, 0x2e, 0x00);
-	delay_ms(10);
+	//delay_ms(10);
     //General
     ov9712_write_register(ViPipe, 0x13, 0xA5);
     ov9712_write_register(ViPipe, 0x14, 0x40);
-	delay_ms(10);
+	//delay_ms(10);
     //Banding
     ov9712_write_register(ViPipe, 0x4a, 0x00);
     ov9712_write_register(ViPipe, 0x49, 0xce);
     ov9712_write_register(ViPipe, 0x22, 0x03);
     ov9712_write_register(ViPipe, 0x09, 0x00);
-	delay_ms(10);
+	//delay_ms(10);
     //close AE_AWB
     ov9712_write_register(ViPipe, 0x13, 0x80);
     ov9712_write_register(ViPipe, 0x16, 0x00);
+    //delay_ms(100);
     ov9712_write_register(ViPipe, 0x10, 0xf0);
     ov9712_write_register(ViPipe, 0x00, 0x3f);
     ov9712_write_register(ViPipe, 0x38, 0x00);
@@ -329,10 +332,15 @@ void ov9712_linear_720p25_init(VI_PIPE ViPipe)
     ov9712_write_register(ViPipe, 0x05, 0x40);
     ov9712_write_register(ViPipe, 0x06, 0x00);
     ov9712_write_register(ViPipe, 0x07, 0x00);
-	delay_ms(10);
+	//delay_ms(10);
     //BLC
     ov9712_write_register(ViPipe, 0x41, 0x84);
 
+//	delay_ms(100);
+//    ov9712_write_register(ViPipe, 0x2a, 0x9c);
+//    ov9712_write_register(ViPipe, 0x2b, 0x06);
+//    ov9712_write_register(ViPipe, 0x10, 0xf0);
+//    ov9712_write_register(ViPipe, 0x00, 0x3f);
     printf("=========================================================\n");
     printf("===ominivision ov9712 sensor 720P30fps(ViPipe, Parallel port) init success!=====\n");
     printf("=========================================================\n");

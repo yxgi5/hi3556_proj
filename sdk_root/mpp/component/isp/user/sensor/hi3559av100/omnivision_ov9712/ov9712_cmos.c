@@ -140,6 +140,9 @@ static HI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSnsD
     pstAeSnsDft->stAERouteAttr.u32TotalNum = 0;
     pstAeSnsDft->stAERouteAttrEx.u32TotalNum = 0;
 
+    /*For some OV sensors, AERunInterval needs to be set more than 1*/    
+    pstAeSnsDft->u8AERunInterval = 2;
+
     if (g_au32InitExposure[ViPipe] == 0)
     {
         pstAeSnsDft->u32InitExposure = 1000000;
@@ -170,11 +173,11 @@ static HI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSnsD
             pstAeSnsDft->u8AeCompensation = 0x38;
             pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
 
-            pstAeSnsDft->u32MaxIntTime = pstSnsState->u32FLStd - 5;
+            pstAeSnsDft->u32MaxIntTime = pstSnsState->u32FLStd - 2;
             pstAeSnsDft->u32MinIntTime = 1;
             pstAeSnsDft->u32MaxIntTimeTarget = 65535;
             pstAeSnsDft->u32MinIntTimeTarget = pstAeSnsDft->u32MinIntTime;
-            pstAeSnsDft->stIntTimeAccu.f32Offset = 0.156;
+            pstAeSnsDft->stIntTimeAccu.f32Offset = 1;
 
             pstAeSnsDft->u32MaxAgain = 4;/* 1, 2, 4, ... 16 (0~24db, unit is 6db) */
             pstAeSnsDft->u32MinAgain = 0;
@@ -199,6 +202,8 @@ static HI_VOID cmos_fps_set(VI_PIPE ViPipe, HI_FLOAT f32Fps, AE_SENSOR_DEFAULT_S
     HI_U32 u32MaxFps;
     HI_U32 u32Lines;
     ISP_SNS_STATE_S *pstSnsState = HI_NULL;
+    HI_U32 tp = 1692;    
+    HI_U32 u32VblankingLines = OV9712_FULL_LINES_MAX;
 
     CMOS_CHECK_POINTER_VOID(pstAeSnsDft);
     OV9712_SENSOR_GET_CTX(ViPipe, pstSnsState);
@@ -208,16 +213,17 @@ static HI_VOID cmos_fps_set(VI_PIPE ViPipe, HI_FLOAT f32Fps, AE_SENSOR_DEFAULT_S
     {
         case OV9712_720P_30FPS_MODE:
             u32MaxFps = 30;
-            if ((f32Fps <= 30) && (f32Fps >= 0.07))
+            if ((f32Fps <= 30) && (f32Fps >= 6.5))
             {
-                u32Lines = OV9712_VMAX_720P30_LINEAR * u32MaxFps / DIV_0_TO_1_FLOAT(f32Fps);
+                //u32Lines = OV9712_VMAX_720P30_LINEAR * u32MaxFps / DIV_0_TO_1_FLOAT(f32Fps);
+                u32VblankingLines = tp * 30 / f32Fps + 3;
             }
             else
             {
                 ISP_TRACE(HI_DBG_ERR, "Not support Fps: %f\n", f32Fps);
                 return;
             }
-            u32Lines = (u32Lines > OV9712_FULL_LINES_MAX) ? OV9712_FULL_LINES_MAX : u32Lines;
+            //u32Lines = (u32Lines > OV9712_FULL_LINES_MAX) ? OV9712_FULL_LINES_MAX : u32Lines;
             break;
 
         default:
@@ -225,16 +231,22 @@ static HI_VOID cmos_fps_set(VI_PIPE ViPipe, HI_FLOAT f32Fps, AE_SENSOR_DEFAULT_S
             return;
     }
 
-    if (WDR_MODE_NONE == pstSnsState->enWDRMode)
-    {
-        pstSnsState->astRegsInfo[0].astI2cData[3].u32Data = LOW_8BITS(u32Lines);
-        pstSnsState->astRegsInfo[0].astI2cData[4].u32Data = HIGH_8BITS(u32Lines);
-    }
-    pstSnsState->u32FLStd = u32Lines;
+//	    if (WDR_MODE_NONE == pstSnsState->enWDRMode)
+//	    {
+//	        pstSnsState->astRegsInfo[0].astI2cData[3].u32Data = LOW_8BITS(u32Lines);
+//	        pstSnsState->astRegsInfo[0].astI2cData[4].u32Data = HIGH_8BITS(u32Lines);
+//	    }
+
+    pstSnsState->astRegsInfo[0].astI2cData[3].u32Data = LOW_8BITS(u32VblankingLines);
+    pstSnsState->astRegsInfo[0].astI2cData[4].u32Data = HIGH_8BITS(u32VblankingLines);
+
+
+    //pstSnsState->u32FLStd = u32Lines;
+    pstSnsState->u32FLStd = OV9712_VMAX_720P30_LINEAR;
     pstAeSnsDft->f32Fps = f32Fps;
     pstAeSnsDft->u32LinesPer500ms = pstSnsState->u32FLStd * f32Fps / 2;
     pstAeSnsDft->u32FullLinesStd = pstSnsState->u32FLStd;
-    pstAeSnsDft->u32MaxIntTime = pstSnsState->u32FLStd - 5;
+    pstAeSnsDft->u32MaxIntTime = 806;
     pstSnsState->au32FL[0] = pstSnsState->u32FLStd;
     pstAeSnsDft->u32FullLines = pstSnsState->au32FL[0];
 
@@ -321,11 +333,14 @@ static HI_VOID cmos_inttime_update(VI_PIPE ViPipe, HI_U32 u32IntTime)
     OV9712_SENSOR_GET_CTX(ViPipe, pstSnsState);
     CMOS_CHECK_POINTER_VOID(pstSnsState);
 
-    u32Value = pstSnsState->au32FL[0] - u32IntTime;
-    u32Value = MIN(u32Value, 0xfffff);
-    u32Value = MIN(MAX(u32Value, 5), pstSnsState->au32FL[0] - 2);
-    pstSnsState->astRegsInfo[0].astI2cData[0].u32Data = LOW_8BITS(u32Value);
-    pstSnsState->astRegsInfo[0].astI2cData[1].u32Data = HIGH_8BITS(u32Value);
+    //u32Value = pstSnsState->au32FL[0] - u32IntTime;
+    //u32Value = MIN(u32Value, 0xfffff);
+    //u32Value = MIN(MAX(u32Value, 5), pstSnsState->au32FL[0] - 2);
+    //pstSnsState->astRegsInfo[0].astI2cData[0].u32Data = LOW_8BITS(u32Value);
+    //pstSnsState->astRegsInfo[0].astI2cData[1].u32Data = HIGH_8BITS(u32Value);
+
+    pstSnsState->astRegsInfo[0].astI2cData[0].u32Data = LOW_8BITS(u32IntTime);
+    pstSnsState->astRegsInfo[0].astI2cData[1].u32Data = HIGH_8BITS(u32IntTime);
     bFirst[ViPipe] = HI_TRUE;
 
     return;
@@ -873,12 +888,12 @@ static HI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_REGS_INFO_S *pstSns
         pstSnsState->astRegsInfo[0].enSnsType = ISP_SNS_I2C_TYPE;
         pstSnsState->astRegsInfo[0].unComBus.s8I2cDev = g_aunOv9712BusInfo[ViPipe].s8I2cDev;
         pstSnsState->astRegsInfo[0].u8Cfg2ValidDelayMax = 2;
-        //pstSnsState->astRegsInfo[0].u32RegNum = 5;
-        pstSnsState->astRegsInfo[0].u32RegNum = 0;
+        pstSnsState->astRegsInfo[0].u32RegNum = 5;
+        //pstSnsState->astRegsInfo[0].u32RegNum = 0;
         
 #if(CMOS_OV9712_SLOW_FRAMERATE_MODE == 0)
-		//pstSnsState->astRegsInfo[0].u32RegNum = 7;
-		pstSnsState->astRegsInfo[0].u32RegNum = 0;
+		pstSnsState->astRegsInfo[0].u32RegNum = 7;
+		//pstSnsState->astRegsInfo[0].u32RegNum = 0;
 #endif		
 
         for (i = 0; i < pstSnsState->astRegsInfo[0].u32RegNum; i++)

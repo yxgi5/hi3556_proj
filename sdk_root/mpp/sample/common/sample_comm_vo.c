@@ -1585,7 +1585,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 {
 	//SAMPLE_PRT("wait here\n");
 	//getchar();
-	// TODO: 
+	
 	HI_S32     fd;
 	int ret;
 	char buffer[2];
@@ -1601,7 +1601,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	if (gpio_fd == -1) 
 	{ 
 		SAMPLE_PRT("can't open /dev/mem.\n"); 
-		//return 1; 
+		goto EXIT; 
 	}
 	gpio_cfg = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, gpio_fd, GPIO_CFG_BASE & ~MAP_MASK);
 	gpio_cfg = gpio_cfg + (GPIO_CFG_BASE & MAP_MASK);  // virtual address
@@ -1633,8 +1633,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x09; // reg address
@@ -1642,8 +1642,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x0a; // reg address
@@ -1651,8 +1651,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x0B; // reg address
@@ -1660,8 +1660,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x10; // reg address
@@ -1669,8 +1669,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x11; // reg address
@@ -1678,8 +1678,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x12; // reg address
@@ -1687,8 +1687,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x13; // reg address
@@ -1696,8 +1696,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x18; // reg address
@@ -1705,8 +1705,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x19; // reg address
@@ -1714,8 +1714,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x1A; // reg address
@@ -1723,8 +1723,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x1B; // reg address
@@ -1732,8 +1732,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x20; // reg address
@@ -1741,8 +1741,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x21; // reg address
@@ -1750,8 +1750,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x22; // reg address
@@ -1759,8 +1759,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x23; // reg address
@@ -1768,8 +1768,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x24; // reg address
@@ -1777,8 +1777,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x25; // reg address
@@ -1786,8 +1786,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x26; // reg address
@@ -1795,8 +1795,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 
 	buffer[0]=0x27; // reg address
@@ -1804,8 +1804,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x28; // reg address
@@ -1813,8 +1813,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x29; // reg address
@@ -1822,8 +1822,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x2A; // reg address
@@ -1831,8 +1831,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x2B; // reg address
@@ -1840,8 +1840,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x2C; // reg address
@@ -1849,8 +1849,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x2D; // reg address
@@ -1858,8 +1858,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x2E; // reg address
@@ -1867,8 +1867,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x2F; // reg address
@@ -1876,8 +1876,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x30; // reg address
@@ -1885,8 +1885,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x31; // reg address
@@ -1894,8 +1894,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x32; // reg address
@@ -1903,8 +1903,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x33; // reg address
@@ -1912,8 +1912,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x34; // reg address
@@ -1921,8 +1921,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x35; // reg address
@@ -1930,8 +1930,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x36; // reg address
@@ -1939,8 +1939,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x37; // reg address
@@ -1948,8 +1948,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x38; // reg address
@@ -1957,8 +1957,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x39; // reg address
@@ -1966,8 +1966,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x3A; // reg address
@@ -1975,8 +1975,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x3B; // reg address
@@ -1984,8 +1984,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x3C; // reg address
@@ -1993,8 +1993,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x3D; // reg address
@@ -2002,8 +2002,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x3E; // reg address
@@ -2011,8 +2011,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 	
 	buffer[0]=0x0D; // reg address
@@ -2020,8 +2020,8 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
 
 	usleep(10000);
@@ -2031,12 +2031,15 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	ret = write(fd, buffer, 2);
 	if (ret < 1)
 	{
-		printf("Error writing file: %s\n", strerror(errno));
-		//return 1;
+		SAMPLE_PRT("Error writing file: %s\n", strerror(errno));
+		goto EXIT1;
 	}
-	
-	close(gpio_fd); 
+
+    EXIT1:
 	close(fd); 
+    
+    EXIT:
+    close(gpio_fd); 
 }
 
 /*

@@ -20,6 +20,7 @@ extern "C"{
 
 
 #define OV9712_ID 9712
+#define __DEBUG__
 
 #define HIGHER_4BITS(x) (((x) & 0xf0000) >> 16)
 #define HIGH_8BITS(x) (((x) & 0xff00) >> 8)
@@ -79,7 +80,15 @@ extern void ov9712_init(VI_PIPE ViPipe);
 extern void ov9712_exit(VI_PIPE ViPipe);
 extern void ov9712_standby(VI_PIPE ViPipe);
 extern void ov9712_restart(VI_PIPE ViPipe);
+
+#ifdef __DEBUG__
+static int  ov9712_write_register(VI_PIPE ViPipe, int addr, int data)
+{
+    return 0;
+}
+#else
 extern int  ov9712_write_register(VI_PIPE ViPipe, int addr, int data);
+#endif
 extern int  ov9712_read_register(VI_PIPE ViPipe, int addr);
 
 /****************************************************************************
@@ -888,12 +897,18 @@ static HI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_REGS_INFO_S *pstSns
         pstSnsState->astRegsInfo[0].enSnsType = ISP_SNS_I2C_TYPE;
         pstSnsState->astRegsInfo[0].unComBus.s8I2cDev = g_aunOv9712BusInfo[ViPipe].s8I2cDev;
         pstSnsState->astRegsInfo[0].u8Cfg2ValidDelayMax = 2;
+    #ifdef __DEBUG__
+        pstSnsState->astRegsInfo[0].u32RegNum = 0;
+    #else
         pstSnsState->astRegsInfo[0].u32RegNum = 5;
-        //pstSnsState->astRegsInfo[0].u32RegNum = 0;
+    #endif
         
 #if(CMOS_OV9712_SLOW_FRAMERATE_MODE == 0)
-		pstSnsState->astRegsInfo[0].u32RegNum = 7;
-		//pstSnsState->astRegsInfo[0].u32RegNum = 0;
+    #ifdef __DEBUG__
+        pstSnsState->astRegsInfo[0].u32RegNum = 0;
+    #else
+        pstSnsState->astRegsInfo[0].u32RegNum = 7;
+    #endif
 #endif		
 
         for (i = 0; i < pstSnsState->astRegsInfo[0].u32RegNum; i++)
@@ -983,7 +998,7 @@ static HI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S *
                 return HI_FAILURE;
             }
         }
-        else if (WDR_MODE_NONE == pstSnsState->enWDRMode)
+        else
         {
             ISP_TRACE(HI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
                       pstSensorImageMode->u16Width,

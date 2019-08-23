@@ -20,7 +20,7 @@ extern "C"{
 
 
 #define OV9712_ID 9712
-#define __DEBUG__
+//#define __DEBUG__
 
 #define HIGHER_4BITS(x) (((x) & 0xf0000) >> 16)
 #define HIGH_8BITS(x) (((x) & 0xff00) >> 8)
@@ -84,6 +84,7 @@ extern void ov9712_restart(VI_PIPE ViPipe);
 #ifdef __DEBUG__
 static int  ov9712_write_register(VI_PIPE ViPipe, int addr, int data)
 {
+    printf("fake ov9712_write_register, addr = #%x data = #%x\n", addr, data);
     return 0;
 }
 #else
@@ -611,18 +612,18 @@ static HI_S32 cmos_init_ae_exp_function(AE_SENSOR_EXP_FUNC_S *pstExpFuncs)
 }
 
 //awb static param for Lens New IR_Cut
-#define CALIBRATE_STATIC_WB_R_GAIN  494
-#define CALIBRATE_STATIC_WB_GR_GAIN 256
-#define CALIBRATE_STATIC_WB_GB_GAIN 256
-#define CALIBRATE_STATIC_WB_B_GAIN  464
+#define CALIBRATE_STATIC_WB_R_GAIN  0x17e
+#define CALIBRATE_STATIC_WB_GR_GAIN 0x100
+#define CALIBRATE_STATIC_WB_GB_GAIN 0x100
+#define CALIBRATE_STATIC_WB_B_GAIN  0x179
 
 /* Calibration results for Auto WB Planck */
-#define CALIBRATE_AWB_P1 -41
-#define CALIBRATE_AWB_P2 297
-#define CALIBRATE_AWB_Q1 0
-#define CALIBRATE_AWB_A1 155760
+#define CALIBRATE_AWB_P1 95
+#define CALIBRATE_AWB_P2 45
+#define CALIBRATE_AWB_Q1 -116
+#define CALIBRATE_AWB_A1 182769
 #define CALIBRATE_AWB_B1 128
-#define CALIBRATE_AWB_C1 -105396
+#define CALIBRATE_AWB_C1 -132156
 
 /* Rgain and Bgain of the golden sample */
 #define GOLDEN_RGAIN 0
@@ -637,7 +638,7 @@ static HI_S32 cmos_get_awb_default(VI_PIPE ViPipe, AWB_SENSOR_DEFAULT_S *pstAwbS
 
     memset(pstAwbSnsDft, 0, sizeof(AWB_SENSOR_DEFAULT_S));
 
-    pstAwbSnsDft->u16WbRefTemp = 4900;
+    pstAwbSnsDft->u16WbRefTemp = 5120;
 
     pstAwbSnsDft->au16GainOffset[0] = CALIBRATE_STATIC_WB_R_GAIN;
     pstAwbSnsDft->au16GainOffset[1] = CALIBRATE_STATIC_WB_GR_GAIN;

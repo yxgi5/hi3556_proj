@@ -141,7 +141,7 @@ int ov9712_write_register(VI_PIPE ViPipe, int addr, int data)
         idx++;
     }
 
-	//printf("[file]:%s [func]:%s [line]:%d:I2C_WRITING! #%x #%x\n", __FILE__, __FUNCTION__, __LINE__, addr, data);
+	printf("[file]:%s [func]:%s [line]:%d:I2C_WRITING! #%x #%x\n", __FILE__, __FUNCTION__, __LINE__, addr, data);
     ret = write(g_fd[ViPipe], buf, (ov9712_addr_byte + ov9712_data_byte));
     if (ret < 0)
     {

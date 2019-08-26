@@ -41,7 +41,7 @@ HI_VOID SAMPLE_VDEC_Usage(char *sPrgNm)
     printf("\t2:  VDEC(JPEG->YUV)-VPSS-VO\n");
     printf("\t3:  VDEC(JPEG->RGB)\n");
     printf("\t4:  VDEC(H264)->VPSS-VO(DHD0-hdmi,DHD1-mipi_tx)\n");
-    printf("\t5:  VDEC(H264)->VPSS-VO(DHD0-hdmi,DHD1-mipi_tx)\n");
+    printf("\t5:  VDEC(H264)->VPSS-VO(DHD0-hdmi),VDEC(H265)->VPSS-VO(DHD1-mipi_tx)\n");
     printf("\t6:  VDEC(H265)->VPSS-VO\n");
 
     printf("\nIntfSync :\n");
@@ -1667,7 +1667,7 @@ END1:
     return s32Ret;
 }
 
-HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
+HI_S32 SAMPLE_H264_VDEC_VPSS_VO_H265_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
 {
     VB_CONFIG_S         stVbConfig;
     HI_S32              i, s32Ret     = HI_SUCCESS;
@@ -1830,15 +1830,6 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
             goto END4;
         }
     }
-//	    {
-//	        VpssGrp = 1;
-//	        s32Ret = SAMPLE_COMM_VPSS_Start(VpssGrp, &abChnEnable[1], &stVpssGrpAttr, &astVpssChnAttr[1]);
-//	        if(s32Ret != HI_SUCCESS)
-//	        {
-//	            SAMPLE_PRT("start VPSS fail for %#x!\n", s32Ret);
-//	            goto END4;
-//	        }
-//	    }
 
     /************************************************
     step5:  start VO Dev UHD(DHD0-hdmi)
@@ -1933,7 +1924,7 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
     VoLayer = stVoConfigHD.VoDev;
     //for(i=0; i<VpssGrpNum; i++)
     {
-        s32Ret = SAMPLE_COMM_VPSS_Bind_VO(1, 1, VoLayer, 1);
+        s32Ret = SAMPLE_COMM_VPSS_Bind_VO(1, 0, VoLayer, 0);
         if(s32Ret != HI_SUCCESS)
         {
             SAMPLE_PRT("vpss bind vo fail for %#x!\n", s32Ret);
@@ -2090,7 +2081,7 @@ END1:
         }
         case '5':
         {
-            s32Ret = SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2();
+            s32Ret = SAMPLE_H264_VDEC_VPSS_VO_H265_VDEC_VPSS_VO_MIPI_Tx2();
             break;
         }
         case '6':

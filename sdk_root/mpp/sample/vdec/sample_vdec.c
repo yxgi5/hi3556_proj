@@ -1924,8 +1924,6 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_H265_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
     VoLayer = stVoConfigHD.VoDev;
     //for(i=0; i<VpssGrpNum; i++)
     {
-        // VPSS 作为数据接收者时，是以设备（GROUP）为接收者，
-        // 接收其他模块发来的数据，用户将通道号置为 0。
         s32Ret = SAMPLE_COMM_VPSS_Bind_VO(1, 0, VoLayer, 0);
         if(s32Ret != HI_SUCCESS)
         {
@@ -1962,9 +1960,10 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_H265_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
 
 END9:
     VoLayer = stVoConfigHD.VoDev;
-    for(i=0; i<VpssGrpNum; i++)
+    //for(i=0; i<VpssGrpNum; i++)
     {
-        s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(i, 0, VoLayer, i);
+        //s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(i, 0, VoLayer, i);
+        s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(1, 0, VoLayer, 0);
         if(s32Ret != HI_SUCCESS)
         {
             SAMPLE_PRT("vpss unbind vo (%d,%d) fail for %#x!\n",VoLayer, i, s32Ret);
@@ -1972,9 +1971,10 @@ END9:
     }
 END8:
     VoLayer = stVoConfigUHD.VoDev;
-    for(i=0; i<VpssGrpNum; i++)
+    //for(i=0; i<VpssGrpNum; i++)
     {
-        s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(i, 0, VoLayer, i);
+        //s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(i, 0, VoLayer, i);
+        s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(0, 0, VoLayer, 0);
         if(s32Ret != HI_SUCCESS)
         {
             SAMPLE_PRT("vpss unbind vo (%d,%d) fail for %#x!\n",VoLayer, i, s32Ret);

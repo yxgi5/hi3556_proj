@@ -84,6 +84,7 @@ HI_VOID SAMPLE_TDE_Usage(HI_CHAR* sPrgNm)
     printf("intf:\n");
     printf("\t 0) vo VGA output, default.\n");
     printf("\t 1) vo HDMI output.\n");
+    printf("\t 2) vo MIPI tx output.\n");
 
     return;
 }
@@ -480,7 +481,7 @@ int main(int argc, char *argv[])
         SAMPLE_TDE_Usage(argv[0]);
         return HI_FAILURE;
     }
-    if (*argv[1] != '0' && *argv[1] != '1')
+    if (*argv[1] != '0' && *argv[1] != '1' && *argv[1] != '2')
     {
         SAMPLE_TDE_Usage(argv[0]);
         return HI_FAILURE;
@@ -501,6 +502,7 @@ int main(int argc, char *argv[])
     else if((argc > 1) && *argv[1] == '2') // '2': MIPI DSI
     {
 		stPubAttr.enIntfType = VO_INTF_MIPI;
+        stPubAttr.enIntfSync = VO_OUTPUT_720P60;
 	}
 
     stVbConf.u32MaxPoolCnt             = 16;
@@ -522,6 +524,16 @@ int main(int argc, char *argv[])
     {
         IntType = VO_INTF_HDMI;
         if (HI_SUCCESS != SAMPLE_COMM_VO_HdmiStart(stPubAttr.enIntfSync))
+        {
+            goto err;
+        }
+    }
+
+    /* if it's displayed on MIPI, we should start MIPI */
+    if (stPubAttr.enIntfType & VO_INTF_MIPI)
+    {
+        IntType = VO_INTF_MIPI;
+        if (HI_SUCCESS != SAMPLE_COMM_VO_StartMipiTx(stPubAttr.enIntfSync))
         {
             goto err;
         }

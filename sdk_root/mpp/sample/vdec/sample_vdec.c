@@ -1924,8 +1924,8 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_H265_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
     VoLayer = stVoConfigHD.VoDev;
     //for(i=0; i<VpssGrpNum; i++)
     {
-        // VPSS ×÷ÎªÊý¾Ý½ÓÊÕÕßÊ±£¬ÊÇÒÔÉè±¸£¨GROUP£©Îª½ÓÊÕÕß£¬
-        // ½ÓÊÕÆäËûÄ£¿é·¢À´µÄÊý¾Ý£¬ÓÃ»§½«Í¨µÀºÅÖÃÎª 0¡£
+        // VPSS ä½œä¸ºæ•°æ®æŽ¥æ”¶è€…æ—¶ï¼Œæ˜¯ä»¥è®¾å¤‡ï¼ˆGROUPï¼‰ä¸ºæŽ¥æ”¶è€…ï¼Œ
+        // æŽ¥æ”¶å…¶ä»–æ¨¡å—å‘æ¥çš„æ•°æ®ï¼Œç”¨æˆ·å°†é€šé“å·ç½®ä¸º 0ã€‚
         s32Ret = SAMPLE_COMM_VPSS_Bind_VO(1, 0, VoLayer, 0);
         if(s32Ret != HI_SUCCESS)
         {

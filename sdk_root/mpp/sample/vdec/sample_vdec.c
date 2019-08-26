@@ -1924,6 +1924,8 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_H265_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
     VoLayer = stVoConfigHD.VoDev;
     //for(i=0; i<VpssGrpNum; i++)
     {
+        // VPSS 作为数据接收者时，是以设备（GROUP）为接收者，
+        // 接收其他模块发来的数据，用户将通道号置为 0。
         s32Ret = SAMPLE_COMM_VPSS_Bind_VO(1, 0, VoLayer, 0);
         if(s32Ret != HI_SUCCESS)
         {

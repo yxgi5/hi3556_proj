@@ -505,6 +505,17 @@ int main(int argc, char *argv[])
 		stPubAttr.enIntfType = VO_INTF_MIPI;
         //stPubAttr.enIntfSync = VO_OUTPUT_720P60;
         //stPubAttr.enIntfSync = VO_OUTPUT_1280x800_60;
+        stPubAttr.enIntfSync = VO_OUTPUT_720P60;
+        if(HI_SUCCESS != SAMPLE_COMM_SYS_Init(&stVbConf))
+		{
+			return -1;
+		}
+		if(HI_SUCCESS != HI_MPI_VO_SetPubAttr(VoDev, &stPubAttr))
+		{
+			SAMPLE_COMM_SYS_Exit();
+			return -1;
+		}
+        
         stPubAttr.enIntfSync = VO_OUTPUT_USER;
         #if 1
         stPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */

@@ -511,7 +511,7 @@ int main(int argc, char *argv[])
         stPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
         stPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
           
-        stPubAttr.stSyncInfo.u16Vact = 720;  /* RW; vertical active area */
+        stPubAttr.stSyncInfo.u16Vact = 800;  /* RW; vertical active area */
         stPubAttr.stSyncInfo.u16Vbb = 15;    /* RW; vertical back blank porch */
         stPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
             

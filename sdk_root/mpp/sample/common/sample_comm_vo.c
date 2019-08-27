@@ -97,7 +97,7 @@ combo_dev_cfg_t MIPI_TX_1280X720_60_CONFIG =
     .phy_data_rate = 459, // 1650*750*24*60/4=445.5, 1x27MHzx17=459
     .pixel_clk = 74250, // // 1650*750*60
 };
-#if 1
+#if 0
 combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
 {
     .devno = 0,
@@ -138,10 +138,10 @@ combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
         .vid_active_lines = 800,
         .edpi_cmd_size    = 0,
     },
-    .phy_data_rate = 513, // 1650*830*24*60/4=493.05, 1x27MHzx19=513
-    .pixel_clk = 82170, // // 1650*830*60
-    //.phy_data_rate = 459, // 1650*830*24*60/4=493.05, 1x27MHzx19=513
-    //.pixel_clk = 74250, // // 1650*830*60
+    //.phy_data_rate = 513, // 1650*830*24*60/4=493.05, 1x27MHzx19=513
+    //.pixel_clk = 82170, // // 1650*830*60
+    .phy_data_rate = 459, // 1650*830*24*60/4=493.05, 1x27MHzx19=513
+    .pixel_clk = 74250, // // 1650*830*60
 };
 #endif
 combo_dev_cfg_t MIPI_TX_1024X768_60_CONFIG =

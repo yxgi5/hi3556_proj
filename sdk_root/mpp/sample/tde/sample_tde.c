@@ -505,6 +505,7 @@ int main(int argc, char *argv[])
 		stPubAttr.enIntfType = VO_INTF_MIPI;
         //stPubAttr.enIntfSync = VO_OUTPUT_720P60;
         //stPubAttr.enIntfSync = VO_OUTPUT_1280x800_60;
+        #if 1
         stPubAttr.enIntfSync = VO_OUTPUT_USER;
         stPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
         stPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
@@ -529,6 +530,7 @@ int main(int argc, char *argv[])
         stPubAttr.stSyncInfo.bIdv = 0;      /* RW; inverse data valid of output */
         stPubAttr.stSyncInfo.bIhs = 0;      /* RW; inverse horizontal synch signal */
         stPubAttr.stSyncInfo.bIvs = 0;      /* RW; inverse vertical synch signal */
+        #endif
 	}
 
     stVbConf.u32MaxPoolCnt             = 16;
@@ -544,6 +546,32 @@ int main(int argc, char *argv[])
         SAMPLE_COMM_SYS_Exit();
         return -1;
     }
+
+    HI_MPI_VO_GetPubAttr(VoDev, &stPubAttr);
+    printf("stPubAttr.enIntfSync = %d\n", stPubAttr.enIntfSync);
+    printf("stPubAttr.stSyncInfo.bSynm = %d\n", stPubAttr.stSyncInfo.bSynm);     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
+    printf("stPubAttr.stSyncInfo.bIop = %d\n", stPubAttr.stSyncInfo.bIop);      /* RW; interlaced or progressive display(0:i; 1:p) */
+    printf("stPubAttr.stSyncInfo.u8Intfb = %d\n", stPubAttr.stSyncInfo.u8Intfb);   /* RW; interlace bit width while output */
+      
+    printf("stPubAttr.stSyncInfo.u16Vact = %d\n", stPubAttr.stSyncInfo.u16Vact);  /* RW; vertical active area */
+    printf("stPubAttr.stSyncInfo.u16Vbb = %d\n", stPubAttr.stSyncInfo.u16Vbb);    /* RW; vertical back blank porch */
+    printf("stPubAttr.stSyncInfo.u16Vfb = %d\n", stPubAttr.stSyncInfo.u16Vfb);    /* RW; vertical front blank porch */
+        
+    printf("stPubAttr.stSyncInfo.u16Hact = %d\n", stPubAttr.stSyncInfo.u16Hact);   /* RW; horizontal active area */
+    printf("stPubAttr.stSyncInfo.u16Hbb = %d\n", stPubAttr.stSyncInfo.u16Hbb);    /* RW; horizontal back blank porch */
+    printf("stPubAttr.stSyncInfo.u16Hfb = %d\n", stPubAttr.stSyncInfo.u16Hfb);    /* RW; horizontal front blank porch */
+    printf("stPubAttr.stSyncInfo.u16Hmid = %d\n", stPubAttr.stSyncInfo.u16Hmid);   /* RW; bottom horizontal active area */
+       
+    printf("stPubAttr.stSyncInfo.u16Bvact = %d\n", stPubAttr.stSyncInfo.u16Bvact);  /* RW; bottom vertical active area */
+    printf("stPubAttr.stSyncInfo.u16Bvbb = %d\n", stPubAttr.stSyncInfo.u16Bvbb);   /* RW; bottom vertical back blank porch */
+    printf("stPubAttr.stSyncInfo.u16Bvfb = %d\n", stPubAttr.stSyncInfo.u16Bvfb);   /* RW; bottom vertical front blank porch */
+      
+    printf("stPubAttr.stSyncInfo.u16Hpw = %d\n", stPubAttr.stSyncInfo.u16Hpw);    /* RW; horizontal pulse width */
+    printf("stPubAttr.stSyncInfo.u16Vpw = %d\n", stPubAttr.stSyncInfo.u16Vpw);    /* RW; vertical pulse width */
+        
+    printf("stPubAttr.stSyncInfo.bIdv = %d\n", stPubAttr.stSyncInfo.bIdv);      /* RW; inverse data valid of output */
+    printf("stPubAttr.stSyncInfo.bIhs = %d\n", stPubAttr.stSyncInfo.bIhs);      /* RW; inverse horizontal synch signal */
+    printf("stPubAttr.stSyncInfo.bIvs = %d\n", stPubAttr.stSyncInfo.bIvs);      /* RW; inverse vertical synch signal */
 
     /* if it's displayed on HDMI, we should start HDMI */
     if (stPubAttr.enIntfType & VO_INTF_HDMI)

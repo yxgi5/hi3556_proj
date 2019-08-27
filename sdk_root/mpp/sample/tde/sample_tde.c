@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
         SAMPLE_TDE_Usage(argv[0]);
         return HI_FAILURE;
     }
-    if (*argv[1] != '0' && *argv[1] != '1' && *argv[1] != '2')
+    if (*argv[1] != '0' && *argv[1] != '1' && *argv[1] != '2' && *argv[1] != '3' && *argv[1] != '4')
     {
         SAMPLE_TDE_Usage(argv[0]);
         return HI_FAILURE;
@@ -505,19 +505,83 @@ int main(int argc, char *argv[])
 		stPubAttr.enIntfType = VO_INTF_MIPI;
         //stPubAttr.enIntfSync = VO_OUTPUT_720P60;
         //stPubAttr.enIntfSync = VO_OUTPUT_1280x800_60;
-        #if 1
         stPubAttr.enIntfSync = VO_OUTPUT_USER;
+        #if 1
         stPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
         stPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
         stPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
           
-        stPubAttr.stSyncInfo.u16Vact = 800;  /* RW; vertical active area */
+        stPubAttr.stSyncInfo.u16Vact = 720;  /* RW; vertical active area */
+        stPubAttr.stSyncInfo.u16Vbb = 15;    /* RW; vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
+            
+        stPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
+        stPubAttr.stSyncInfo.u16Hbb = 110;    /* RW; horizontal back blank porch */
+        stPubAttr.stSyncInfo.u16Hfb = 110;    /* RW; horizontal front blank porch */
+        stPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
+           
+        stPubAttr.stSyncInfo.u16Bvact = 0;  /* RW; bottom vertical active area */
+        stPubAttr.stSyncInfo.u16Bvbb = 0;   /* RW; bottom vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Bvfb = 0;   /* RW; bottom vertical front blank porch */
+          
+        stPubAttr.stSyncInfo.u16Hpw = 40;    /* RW; horizontal pulse width */
+        stPubAttr.stSyncInfo.u16Vpw = 5;    /* RW; vertical pulse width */
+            
+        stPubAttr.stSyncInfo.bIdv = 0;      /* RW; inverse data valid of output */
+        stPubAttr.stSyncInfo.bIhs = 0;      /* RW; inverse horizontal synch signal */
+        stPubAttr.stSyncInfo.bIvs = 0;      /* RW; inverse vertical synch signal */
+        #endif
+	}
+	else if((argc > 1) && *argv[1] == '3')
+    {
+		stPubAttr.enIntfType = VO_INTF_HDMI;
+        //stPubAttr.enIntfSync = VO_OUTPUT_720P60;
+        //stPubAttr.enIntfSync = VO_OUTPUT_1280x800_60;
+        stPubAttr.enIntfSync = VO_OUTPUT_USER;
+        #if 1
+        stPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
+        stPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
+        stPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
+          
+        stPubAttr.stSyncInfo.u16Vact = 720;  /* RW; vertical active area */
         stPubAttr.stSyncInfo.u16Vbb = 20;    /* RW; vertical back blank porch */
         stPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
             
         stPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
-        stPubAttr.stSyncInfo.u16Hbb = 220;    /* RW; horizontal back blank porch */
-        stPubAttr.stSyncInfo.u16Hfb = 110;    /* RW; horizontal front blank porch */
+        stPubAttr.stSyncInfo.u16Hbb = 20;    /* RW; horizontal back blank porch */
+        stPubAttr.stSyncInfo.u16Hfb = 10;    /* RW; horizontal front blank porch */
+        stPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
+           
+        stPubAttr.stSyncInfo.u16Bvact = 0;  /* RW; bottom vertical active area */
+        stPubAttr.stSyncInfo.u16Bvbb = 0;   /* RW; bottom vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Bvfb = 0;   /* RW; bottom vertical front blank porch */
+          
+        stPubAttr.stSyncInfo.u16Hpw = 40;    /* RW; horizontal pulse width */
+        stPubAttr.stSyncInfo.u16Vpw = 5;    /* RW; vertical pulse width */
+            
+        stPubAttr.stSyncInfo.bIdv = 0;      /* RW; inverse data valid of output */
+        stPubAttr.stSyncInfo.bIhs = 0;      /* RW; inverse horizontal synch signal */
+        stPubAttr.stSyncInfo.bIvs = 0;      /* RW; inverse vertical synch signal */
+        #endif
+	}
+	else if((argc > 1) && *argv[1] == '4') // '2': MIPI DSI
+    {
+		stPubAttr.enIntfType = VO_INTF_MIPI;
+        stPubAttr.enIntfSync = VO_OUTPUT_720P60;
+        //stPubAttr.enIntfSync = VO_OUTPUT_1280x800_60;
+        //stPubAttr.enIntfSync = VO_OUTPUT_USER;
+        #if 0
+        stPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
+        stPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
+        stPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
+          
+        stPubAttr.stSyncInfo.u16Vact = 720;  /* RW; vertical active area */
+        stPubAttr.stSyncInfo.u16Vbb = 20;    /* RW; vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
+            
+        stPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
+        stPubAttr.stSyncInfo.u16Hbb = 20;    /* RW; horizontal back blank porch */
+        stPubAttr.stSyncInfo.u16Hfb = 10;    /* RW; horizontal front blank porch */
         stPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
            
         stPubAttr.stSyncInfo.u16Bvact = 0;  /* RW; bottom vertical active area */

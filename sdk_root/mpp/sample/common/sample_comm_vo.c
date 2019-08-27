@@ -97,7 +97,29 @@ combo_dev_cfg_t MIPI_TX_1280X720_60_CONFIG =
     .phy_data_rate = 459, // 1650*750*24*60/4=445.5, 1x27MHzx17=459
     .pixel_clk = 74250, // // 1650*750*60
 };
-
+#if 1
+combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
+{
+    .devno = 0,
+    .lane_id = {0, 1, 2, 3},
+    .output_mode = OUTPUT_MODE_DSI_VIDEO,
+    .output_format = OUT_FORMAT_RGB_24_BIT,
+    .video_mode =  BURST_MODE,
+    .sync_info = {
+        .vid_pkt_size     = 1280,
+        .vid_hsa_pixels   = 40,
+        .vid_hbp_pixels   = 220,
+        .vid_hline_pixels = 1650,
+        .vid_vsa_lines    = 5,
+        .vid_vbp_lines    = 20,
+        .vid_vfp_lines    = 5,
+        .vid_active_lines = 720,
+        .edpi_cmd_size    = 0,
+    },
+    .phy_data_rate = 459, // 1650*750*24*60/4=445.5, 1x27MHzx17=459
+    .pixel_clk = 74250, // // 1650*750*60
+};
+#else
 combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
 {
     .devno = 0,
@@ -121,8 +143,7 @@ combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
     //.phy_data_rate = 459, // 1650*830*24*60/4=493.05, 1x27MHzx19=513
     //.pixel_clk = 74250, // // 1650*830*60
 };
-
-
+#endif
 combo_dev_cfg_t MIPI_TX_1024X768_60_CONFIG =
 {
     .devno = 0,

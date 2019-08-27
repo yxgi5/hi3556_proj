@@ -1218,29 +1218,29 @@ HI_S32 SAMPLE_COMM_VO_StartVO2(SAMPLE_VO_CONFIG_S *pstVoConfig)
     *********************************/
     stVoPubAttr.enIntfType  = enVoIntfType;
     stVoPubAttr.enIntfSync  = enIntfSync;
-//	    stVoPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
-//	    stVoPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
-//	    stVoPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
-//	        
-//	    stVoPubAttr.stSyncInfo.u16Vact = 800;  /* RW; vertical active area */
-//	    stVoPubAttr.stSyncInfo.u16Vbb = 20;    /* RW; vertical back blank porch */
-//	    stVoPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
-//	        
-//	    stVoPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
-//	    stVoPubAttr.stSyncInfo.u16Hbb = 220;    /* RW; horizontal back blank porch */
-//	    stVoPubAttr.stSyncInfo.u16Hfb = 110;    /* RW; horizontal front blank porch */
-//	    stVoPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
-//	        
-//	    stVoPubAttr.stSyncInfo.u16Bvact = 0;  /* RW; bottom vertical active area */
-//	    stVoPubAttr.stSyncInfo.u16Bvbb = 0;   /* RW; bottom vertical back blank porch */
-//	    stVoPubAttr.stSyncInfo.u16Bvfb = 0;   /* RW; bottom vertical front blank porch */
-//	        
-//	    stVoPubAttr.stSyncInfo.u16Hpw = 40;    /* RW; horizontal pulse width */
-//	    stVoPubAttr.stSyncInfo.u16Vpw = 5;    /* RW; vertical pulse width */
-//	        
-//	    stVoPubAttr.stSyncInfo.bIdv = 0;      /* RW; inverse data valid of output */
-//	    stVoPubAttr.stSyncInfo.bIhs = 0;      /* RW; inverse horizontal synch signal */
-//	    stVoPubAttr.stSyncInfo.bIvs = 0;      /* RW; inverse vertical synch signal */
+    stVoPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
+    stVoPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
+    stVoPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
+        
+    stVoPubAttr.stSyncInfo.u16Vact = 800;  /* RW; vertical active area */
+    stVoPubAttr.stSyncInfo.u16Vbb = 20;    /* RW; vertical back blank porch */
+    stVoPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
+        
+    stVoPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
+    stVoPubAttr.stSyncInfo.u16Hbb = 220;    /* RW; horizontal back blank porch */
+    stVoPubAttr.stSyncInfo.u16Hfb = 110;    /* RW; horizontal front blank porch */
+    stVoPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
+        
+    stVoPubAttr.stSyncInfo.u16Bvact = 0;  /* RW; bottom vertical active area */
+    stVoPubAttr.stSyncInfo.u16Bvbb = 0;   /* RW; bottom vertical back blank porch */
+    stVoPubAttr.stSyncInfo.u16Bvfb = 0;   /* RW; bottom vertical front blank porch */
+        
+    stVoPubAttr.stSyncInfo.u16Hpw = 40;    /* RW; horizontal pulse width */
+    stVoPubAttr.stSyncInfo.u16Vpw = 5;    /* RW; vertical pulse width */
+        
+    stVoPubAttr.stSyncInfo.bIdv = 0;      /* RW; inverse data valid of output */
+    stVoPubAttr.stSyncInfo.bIhs = 0;      /* RW; inverse horizontal synch signal */
+    stVoPubAttr.stSyncInfo.bIvs = 0;      /* RW; inverse vertical synch signal */
 
     stVoPubAttr.u32BgColor  = pstVoConfig->u32BgColor;
 
@@ -1824,12 +1824,16 @@ HI_S32 SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
     /************************************************
     step5:  start VO Dev UHD(DHD0-mipi_tx)
     *************************************************/
+    //stDispSizeUHD.u32Width  = 1280;
+    //stDispSizeUHD.u32Height = 720;
     stDispSizeUHD.u32Width  = 1280;
-    stDispSizeUHD.u32Height = 720;
+    stDispSizeUHD.u32Height = 800;
     stVoConfigUHD.VoDev                 = SAMPLE_VO_DEV_HD;
     stVoConfigUHD.enVoIntfType          = VO_INTF_MIPI;
-    stVoConfigUHD.enIntfSync            = VO_OUTPUT_720P60;
-    stVoConfigUHD.enPicSize             = PIC_720P;
+    //stVoConfigUHD.enIntfSync            = VO_OUTPUT_720P60;
+    stVoConfigUHD.enIntfSync            = VO_OUTPUT_1280x800_60;
+	//stVoConfigUHD.enPicSize             = PIC_720P;
+    stVoConfigUHD.enPicSize             = PIC_1280x800;
     stVoConfigUHD.u32BgColor            = COLOR_RGB_BLUE;
     stVoConfigUHD.u32DisBufLen          = 3;
     stVoConfigUHD.enDstDynamicRange     = DYNAMIC_RANGE_SDR8;
@@ -1842,7 +1846,7 @@ HI_S32 SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
     stVoConfigUHD.stImageSize.u32Width  = stDispSizeUHD.u32Width;
     stVoConfigUHD.stImageSize.u32Height = stDispSizeUHD.u32Height;
     stVoConfigUHD.enVoPartMode          = VO_PART_MODE_SINGLE;
-    s32Ret = SAMPLE_COMM_VO_StartVO(&stVoConfigUHD);
+    s32Ret = SAMPLE_COMM_VO_StartVO2(&stVoConfigUHD);
     if(s32Ret != HI_SUCCESS)
     {
         SAMPLE_PRT("start VO %d fail for %#x!\n", stVoConfigUHD.VoDev, s32Ret);

@@ -424,7 +424,8 @@ HI_S32 TDE_DrawGraphicSample()
     g_s32FrameNum = 0;
 
     /* 3. use tde and framebuffer to realize rotational effect */
-    for (u32Times = 0; u32Times < 20; u32Times++)
+    //for (u32Times = 0; u32Times < 20; u32Times++)
+    while(1)
     {
         circumrotate(u32Times%2);
         stVarInfo.yoffset = (u32Times%2)?0:576;
@@ -502,7 +503,32 @@ int main(int argc, char *argv[])
     else if((argc > 1) && *argv[1] == '2') // '2': MIPI DSI
     {
 		stPubAttr.enIntfType = VO_INTF_MIPI;
-        stPubAttr.enIntfSync = VO_OUTPUT_720P60;
+        //stPubAttr.enIntfSync = VO_OUTPUT_720P60;
+        //stPubAttr.enIntfSync = VO_OUTPUT_1280x800_60;
+        stPubAttr.enIntfSync = VO_OUTPUT_USER;
+        stPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
+        stPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
+        stPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
+          
+        stPubAttr.stSyncInfo.u16Vact = 800;  /* RW; vertical active area */
+        stPubAttr.stSyncInfo.u16Vbb = 20;    /* RW; vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
+            
+        stPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
+        stPubAttr.stSyncInfo.u16Hbb = 220;    /* RW; horizontal back blank porch */
+        stPubAttr.stSyncInfo.u16Hfb = 110;    /* RW; horizontal front blank porch */
+        stPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
+           
+        stPubAttr.stSyncInfo.u16Bvact = 0;  /* RW; bottom vertical active area */
+        stPubAttr.stSyncInfo.u16Bvbb = 0;   /* RW; bottom vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Bvfb = 0;   /* RW; bottom vertical front blank porch */
+          
+        stPubAttr.stSyncInfo.u16Hpw = 40;    /* RW; horizontal pulse width */
+        stPubAttr.stSyncInfo.u16Vpw = 5;    /* RW; vertical pulse width */
+            
+        stPubAttr.stSyncInfo.bIdv = 0;      /* RW; inverse data valid of output */
+        stPubAttr.stSyncInfo.bIhs = 0;      /* RW; inverse horizontal synch signal */
+        stPubAttr.stSyncInfo.bIvs = 0;      /* RW; inverse vertical synch signal */
 	}
 
     stVbConf.u32MaxPoolCnt             = 16;

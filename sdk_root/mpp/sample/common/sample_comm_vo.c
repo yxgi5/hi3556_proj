@@ -46,6 +46,8 @@ extern "C" {
 
 #define CFG_BASE  0x12010000
 #define rPERI_CRG73 0x0124
+#define rPERI_CRG_PLL14 0x0038
+#define rPERI_CRG_PLL15 0x003c
 
 #define SN65DSI83_ENABLE_MASK 0x01
 #define SN65DSI83_ENABLE_BIT 0x00
@@ -482,40 +484,45 @@ HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S* pstPubAttr)
     if(pstPubAttr->enIntfSync == VO_OUTPUT_USER)
     {
         HI_U32 u32Framerate, u32Width, u32Height;
-        VO_USER_INTFSYNC_INFO_S stUserInfo = {0};
-        /* Fill user sync info */
-        stUserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_PLL;
-        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Fbdiv = 99;
-        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Frac= 0;
-        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Refdiv = 2;
-        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv1 = 2;
-        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv2 = 1;
-        //UserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_LCDMCLK;
-        //UserInfo.stUserIntfSyncAttr.u32LcdMClkDiv = 1;
-        stUserInfo.u32DevDiv = 1;
-        stUserInfo.bClkReverse = HI_TRUE;
-        stUserInfo.u32PreDiv = 1;
-        /* Set user interface sync info */
-        s32Ret = HI_MPI_VO_SetUserIntfSyncInfo(VoDev, &stUserInfo);
-        if (s32Ret != HI_SUCCESS)
+        //SAMPLE_PRT("wait here\n");
+	    //getchar();
+        //if(VoDev == 0)
         {
-            SAMPLE_PRT("Set user interface sync info failed with %#x.\n",s32Ret);
-            return HI_FAILURE;
+            VO_USER_INTFSYNC_INFO_S stUserInfo = {0};
+            /* Fill user sync info */
+            stUserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_PLL;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Fbdiv = 99;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Frac= 0;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Refdiv = 2;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv1 = 4;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv2 = 4;
+            //UserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_LCDMCLK;
+            //UserInfo.stUserIntfSyncAttr.u32LcdMClkDiv = 1;
+            stUserInfo.u32DevDiv = 2;
+            stUserInfo.bClkReverse = HI_TRUE;
+            stUserInfo.u32PreDiv = 1;
+            /* Set user interface sync info */
+            s32Ret = HI_MPI_VO_SetUserIntfSyncInfo(VoDev, &stUserInfo);
+            if (s32Ret != HI_SUCCESS)
+            {
+                SAMPLE_PRT("Set user interface sync info failed with %#x.\n",s32Ret);
+                return HI_FAILURE;
+            }
+
+            printf("VoDev = %d\n", VoDev);
+
+            s32Ret = SAMPLE_COMM_VO_GetWH(pstPubAttr->enIntfSync,
+                                      &u32Width, &u32Height,
+                                      &u32Framerate);
+            
+            s32Ret = HI_MPI_VO_SetDevFrameRate(VoDev, u32Framerate);
+            if (s32Ret != HI_SUCCESS)
+            {
+                SAMPLE_PRT("Set user interface Framerate failed with %#x.\n",s32Ret);
+                return HI_FAILURE;
+            }
         }
-
-        printf("VoDev = %d\n", VoDev);
-
-        s32Ret = SAMPLE_COMM_VO_GetWH(pstPubAttr->enIntfSync,
-                                  &u32Width, &u32Height,
-                                  &u32Framerate);
-        
-        s32Ret = HI_MPI_VO_SetDevFrameRate(VoDev, u32Framerate);
-        if (s32Ret != HI_SUCCESS)
-        {
-            SAMPLE_PRT("Set user interface Framerate failed with %#x.\n",s32Ret);
-            return HI_FAILURE;
-        }
-
+        #if 0
         // vdp_hd1_cksel
         if(VoDev == 1)
         {
@@ -538,6 +545,49 @@ HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S* pstPubAttr)
             	close(crg_fd); 
             }
         }
+        #else
+        //else if(VoDev == 1)
+        {
+            int crg_fd;
+            void *crg_cfg;
+            unsigned int * PERI_CRG_PLL14 = NULL;
+            unsigned int * PERI_CRG_PLL15 = NULL;
+            unsigned int * PERI_CRG73 = NULL;
+            
+            crg_fd =open("/dev/mem",O_RDWR); 
+            if (crg_fd == -1) 
+            { 
+            	SAMPLE_PRT("can't open /dev/mem.\n"); 
+            	close(crg_fd); 
+            }
+            else
+            {
+            	crg_cfg = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, crg_fd, CFG_BASE & ~MAP_MASK);
+            	crg_cfg = crg_cfg + (CFG_BASE & MAP_MASK);  // virtual address
+            	PERI_CRG_PLL14 = (volatile unsigned int *) (crg_cfg + rPERI_CRG_PLL14);
+                PERI_CRG_PLL15 = (volatile unsigned int *) (crg_cfg + rPERI_CRG_PLL15);
+                PERI_CRG73 = (volatile unsigned int *) (crg_cfg + rPERI_CRG73);
+            	*(volatile unsigned int *) PERI_CRG_PLL14 = 0x12000000;
+                *(volatile unsigned int *) PERI_CRG_PLL15 = 0x01002063;
+                *(volatile unsigned int *) PERI_CRG73 = ((*(volatile unsigned int *) PERI_CRG73) & (~(0x7 << 18))) | (0x7 << 18);
+            	close(crg_fd); 
+            }
+
+        
+            printf("VoDev = %d\n", VoDev);
+
+            s32Ret = SAMPLE_COMM_VO_GetWH(pstPubAttr->enIntfSync,
+                                      &u32Width, &u32Height,
+                                      &u32Framerate);
+            
+            s32Ret = HI_MPI_VO_SetDevFrameRate(VoDev, u32Framerate);
+            if (s32Ret != HI_SUCCESS)
+            {
+                SAMPLE_PRT("Set user interface Framerate failed with %#x.\n",s32Ret);
+                return HI_FAILURE;
+            }
+        }
+        #endif
     }
     s32Ret = HI_MPI_VO_Enable(VoDev);
     if (s32Ret != HI_SUCCESS)
@@ -1724,7 +1774,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	
 	
 	*(volatile unsigned int *)GPBDAT= (SN65DSI83_DISABLE & SN65DSI83_ENABLE_MASK) << SN65DSI83_ENABLE_BIT; 
-	usleep(10000);
+	usleep(100000);
 	*(volatile unsigned int *)GPBDAT= (SN65DSI83_ENABLE & SN65DSI83_ENABLE_MASK) << SN65DSI83_ENABLE_BIT;
 	usleep(100000);
 	
@@ -2132,7 +2182,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 		goto EXIT1;
 	}
 
-	usleep(10000);
+	usleep(100000);
 	
 	buffer[0]=0x09; // reg address
 	buffer[1]=0x01; // reg value

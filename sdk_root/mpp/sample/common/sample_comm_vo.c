@@ -480,6 +480,41 @@ HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S* pstPubAttr)
         SAMPLE_PRT("failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
+
+/*
+如果
+u32Postdiv1 = 4;
+u32Postdiv2 = 2;
+u32PreDiv = 1;//u32PreDiv = 2; // u32PreDiv = 0; #这里好像没有发生效果， 一个屌样
+
+那么
+
+vdec 
+devmem 0x12010028 w 0x24000000 #无效
+devmem 0x12010038 w 0x18000000
+
+tde 
+devmem 0x12010028 w 0x24000000
+devmem 0x12010038 w 0x18000000
+
+
+
+
+如果
+u32Postdiv1 = 4;
+u32Postdiv2 = 4;
+u32PreDiv = 1;//u32PreDiv = 2; // u32PreDiv = 0; #这里好像没有发生效果， 一个屌样
+
+那么
+
+vdec 
+devmem 0x12010028 w 0x44000000 #无效
+devmem 0x12010038 w 0x12000000
+
+tde 
+devmem 0x12010028 w 0x24000000
+devmem 0x12010038 w 0x12000000
+*/  
     
     if(pstPubAttr->enIntfSync == VO_OUTPUT_USER)
     {
@@ -500,7 +535,7 @@ HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S* pstPubAttr)
             //UserInfo.stUserIntfSyncAttr.u32LcdMClkDiv = 1;
             stUserInfo.u32DevDiv = 2;
             stUserInfo.bClkReverse = HI_TRUE;
-            stUserInfo.u32PreDiv = 1;
+            stUserInfo.u32PreDiv = 1; // no effect ?
             /* Set user interface sync info */
             s32Ret = HI_MPI_VO_SetUserIntfSyncInfo(VoDev, &stUserInfo);
             if (s32Ret != HI_SUCCESS)

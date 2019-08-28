@@ -44,6 +44,9 @@ extern "C" {
 #define rGPBCON 0x400 
 #define rGPBDAT 0x0
 
+#define CFG_BASE  0x12010000
+#define rPERI_CRG73 0x0124
+
 #define SN65DSI83_ENABLE_MASK 0x01
 #define SN65DSI83_ENABLE_BIT 0x00
 #define SN65DSI83_ENABLE	0x01
@@ -475,14 +478,73 @@ HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S* pstPubAttr)
         SAMPLE_PRT("failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
+    
+    if(pstPubAttr->enIntfSync == VO_OUTPUT_USER)
+    {
+        HI_U32 u32Framerate, u32Width, u32Height;
+        VO_USER_INTFSYNC_INFO_S stUserInfo = {0};
+        /* Fill user sync info */
+        stUserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_PLL;
+        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Fbdiv = 99;
+        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Frac= 0;
+        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Refdiv = 2;
+        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv1 = 2;
+        stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv2 = 1;
+        //UserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_LCDMCLK;
+        //UserInfo.stUserIntfSyncAttr.u32LcdMClkDiv = 1;
+        stUserInfo.u32DevDiv = 1;
+        stUserInfo.bClkReverse = HI_TRUE;
+        stUserInfo.u32PreDiv = 1;
+        /* Set user interface sync info */
+        s32Ret = HI_MPI_VO_SetUserIntfSyncInfo(VoDev, &stUserInfo);
+        if (s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("Set user interface sync info failed with %#x.\n",s32Ret);
+            return HI_FAILURE;
+        }
 
+        printf("VoDev = %d\n", VoDev);
+
+        s32Ret = SAMPLE_COMM_VO_GetWH(pstPubAttr->enIntfSync,
+                                  &u32Width, &u32Height,
+                                  &u32Framerate);
+        
+        s32Ret = HI_MPI_VO_SetDevFrameRate(VoDev, u32Framerate);
+        if (s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("Set user interface Framerate failed with %#x.\n",s32Ret);
+            return HI_FAILURE;
+        }
+
+        // vdp_hd1_cksel
+        if(VoDev == 1)
+        {
+            int crg_fd;
+            void *crg_cfg;
+            unsigned int * PERI_CRG73 = NULL;
+
+            crg_fd =open("/dev/mem",O_RDWR); 
+            if (crg_fd == -1) 
+            { 
+            	SAMPLE_PRT("can't open /dev/mem.\n"); 
+            	close(crg_fd); 
+            }
+            else
+            {
+            	crg_cfg = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, crg_fd, CFG_BASE & ~MAP_MASK);
+            	crg_cfg = crg_cfg + (CFG_BASE & MAP_MASK);  // virtual address
+            	PERI_CRG73 = (volatile unsigned int *) (crg_cfg + rPERI_CRG73);
+            	*(volatile unsigned int *) PERI_CRG73 = ((*(volatile unsigned int *) PERI_CRG73) & (~(0x7 << 18))) | (0x1 << 18);
+            	close(crg_fd); 
+            }
+        }
+    }
     s32Ret = HI_MPI_VO_Enable(VoDev);
     if (s32Ret != HI_SUCCESS)
     {
-        SAMPLE_PRT("failed with %#x!\n", s32Ret);
+        SAMPLE_PRT("Enable vo dev failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
-
     return s32Ret;
 }
 

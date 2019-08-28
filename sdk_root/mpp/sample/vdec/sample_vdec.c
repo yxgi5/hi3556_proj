@@ -1223,11 +1223,11 @@ HI_S32 SAMPLE_COMM_VO_StartVO2(SAMPLE_VO_CONFIG_S *pstVoConfig)
     stVoPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
         
     stVoPubAttr.stSyncInfo.u16Vact = 800;  /* RW; vertical active area */
-    stVoPubAttr.stSyncInfo.u16Vbb = 20;    /* RW; vertical back blank porch */
+    stVoPubAttr.stSyncInfo.u16Vbb = 15;    /* RW; vertical back blank porch */
     stVoPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
         
     stVoPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
-    stVoPubAttr.stSyncInfo.u16Hbb = 220;    /* RW; horizontal back blank porch */
+    stVoPubAttr.stSyncInfo.u16Hbb = 110;    /* RW; horizontal back blank porch */
     stVoPubAttr.stSyncInfo.u16Hfb = 110;    /* RW; horizontal front blank porch */
     stVoPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
         
@@ -1752,6 +1752,9 @@ HI_S32 SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
         goto END1;
     }
 
+	stDispSizeUHD.u32Width = 1280;
+	stDispSizeUHD.u32Height = 800;
+	
     /************************************************
     step2:  init module VB or user VB(for VDEC)
     *************************************************/
@@ -1760,6 +1763,8 @@ HI_S32 SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
         astSampleVdec[i].enType                           = PT_H264;
         astSampleVdec[i].u32Width                         = 3840;
         astSampleVdec[i].u32Height                        = 2160;
+        //astSampleVdec[i].u32Width                         = 480;
+        //astSampleVdec[i].u32Height                        = 272;
         astSampleVdec[i].enMode                           = VIDEO_MODE_FRAME;
         astSampleVdec[i].stSapmleVdecVideo.enDecMode      = VIDEO_DEC_MODE_IPB;
         astSampleVdec[i].stSapmleVdecVideo.enBitWidth     = DATA_BITWIDTH_8;
@@ -1831,7 +1836,8 @@ HI_S32 SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
     stVoConfigUHD.VoDev                 = SAMPLE_VO_DEV_HD;
     stVoConfigUHD.enVoIntfType          = VO_INTF_MIPI;
     //stVoConfigUHD.enIntfSync            = VO_OUTPUT_720P60;
-    stVoConfigUHD.enIntfSync            = VO_OUTPUT_1280x800_60;
+    //stVoConfigUHD.enIntfSync            = VO_OUTPUT_1280x800_60;
+    stVoConfigUHD.enIntfSync            = VO_OUTPUT_USER;
 	//stVoConfigUHD.enPicSize             = PIC_720P;
     stVoConfigUHD.enPicSize             = PIC_1280x800;
     stVoConfigUHD.u32BgColor            = COLOR_RGB_BLUE;
@@ -1886,6 +1892,7 @@ HI_S32 SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
     for(i=0; i<u32VdecChnNum; i++)
     {
         snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "3840x2160_8bit.h264");
+        //snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "bigbuckbunny_480x272.h264");
         snprintf(stVdecSend[i].cFilePath, sizeof(stVdecSend[i].cFilePath), "%s", SAMPLE_STREAM_PATH);
         stVdecSend[i].enType          = astSampleVdec[i].enType;
         stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;

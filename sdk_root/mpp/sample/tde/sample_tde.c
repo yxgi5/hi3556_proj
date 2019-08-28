@@ -505,6 +505,7 @@ int main(int argc, char *argv[])
 		stPubAttr.enIntfType = VO_INTF_MIPI;
         //stPubAttr.enIntfSync = VO_OUTPUT_720P60;
         //stPubAttr.enIntfSync = VO_OUTPUT_1280x800_60;
+        #if 0
         stPubAttr.enIntfSync = VO_OUTPUT_720P60;
         if(HI_SUCCESS != SAMPLE_COMM_SYS_Init(&stVbConf))
 		{
@@ -515,6 +516,7 @@ int main(int argc, char *argv[])
 			SAMPLE_COMM_SYS_Exit();
 			return -1;
 		}
+        #endif
         
         stPubAttr.enIntfSync = VO_OUTPUT_USER;
         #if 1

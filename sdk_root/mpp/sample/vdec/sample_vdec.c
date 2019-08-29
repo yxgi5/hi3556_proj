@@ -44,6 +44,7 @@ HI_VOID SAMPLE_VDEC_Usage(char *sPrgNm)
     printf("\t5:  VDEC(H264)->VPSS-VO(DHD0-hdmi),VDEC(H265)->VPSS-VO(DHD1-mipi_tx)\n");
     printf("\t6:  VDEC(H265)->VPSS-VO\n");
     printf("\t7:  VDEC(H265)->VPSS-VO(DHD0-mipi_tx)\n");
+    printf("\t8:  VDEC(H264)->VPSS-VO(DHD0-hdmi720p,DHD1-mipi_tx1280x800)\n");
 
     printf("\nIntfSync :\n");
     printf("\t0: VO HDMI 4K@30fps.\n");
@@ -1691,6 +1692,314 @@ END1:
     return s32Ret;
 }
 
+HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
+{
+    VB_CONFIG_S         stVbConfig;
+    HI_S32              i, s32Ret     = HI_SUCCESS;
+    VDEC_THREAD_PARAM_S stVdecSend[VDEC_MAX_CHN_NUM];
+    SIZE_S              stDispSizeUHD = {0};
+    SIZE_S              stDispSizeHD  = {0};
+    VO_LAYER            VoLayer;
+    HI_U32              u32VdecChnNum, VpssGrpNum;
+    VPSS_GRP            VpssGrp;
+    pthread_t           VdecThread[2*VDEC_MAX_CHN_NUM];
+    PIC_SIZE_E          enDispPicSize;
+    SAMPLE_VDEC_ATTR    astSampleVdec[VDEC_MAX_CHN_NUM];
+    VPSS_CHN_ATTR_S     astVpssChnAttr[VPSS_MAX_CHN_NUM];
+    SAMPLE_VO_CONFIG_S  stVoConfigUHD;
+    SAMPLE_VO_CONFIG_S  stVoConfigHD;
+    VPSS_GRP_ATTR_S     stVpssGrpAttr;
+    HI_BOOL             abChnEnable[VPSS_MAX_CHN_NUM];
+    VO_INTF_SYNC_E      enIntfSync;
+
+    u32VdecChnNum = 1;
+    VpssGrpNum    = u32VdecChnNum;
+
+    /************************************************
+    step1:  init SYS, init common VB(for VPSS and VO)
+    *************************************************/
+    if(VO_OUTPUT_3840x2160_30 == g_enIntfSync)
+    {
+        enDispPicSize = PIC_3840x2160;
+        enIntfSync    = VO_OUTPUT_3840x2160_30;
+    }
+    else if(VO_OUTPUT_1080P30 == g_enIntfSync)
+    {
+        enDispPicSize = PIC_1080P;
+        enIntfSync    = VO_OUTPUT_1080P30;
+    }
+    else if(VO_OUTPUT_1080P60 == g_enIntfSync)
+    {
+        enDispPicSize = PIC_1080P;
+        enIntfSync    = VO_OUTPUT_1080P60;
+    }
+
+    s32Ret =  SAMPLE_COMM_SYS_GetPicSize(enDispPicSize, &stDispSizeUHD);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("sys get pic size fail for %#x!\n", s32Ret);
+        goto END1;
+    }
+
+    memset(&stVbConfig, 0, sizeof(VB_CONFIG_S));
+    stVbConfig.u32MaxPoolCnt             = 1;
+    stVbConfig.astCommPool[0].u32BlkCnt  = 10*u32VdecChnNum;
+    stVbConfig.astCommPool[0].u64BlkSize = COMMON_GetPicBufferSize(stDispSizeUHD.u32Width, stDispSizeUHD.u32Height,
+                                                PIXEL_FORMAT_YVU_SEMIPLANAR_420, DATA_BITWIDTH_8, COMPRESS_MODE_SEG, 0);
+    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConfig);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("init sys fail for %#x!\n", s32Ret);
+        goto END1;
+    }
+
+    /************************************************
+    step2:  init module VB or user VB(for VDEC)
+    *************************************************/
+    for(i=0; i<u32VdecChnNum; i++)
+    {
+        astSampleVdec[i].enType                           = PT_H264;
+        astSampleVdec[i].u32Width                         = 3840;
+        astSampleVdec[i].u32Height                        = 2160;
+        astSampleVdec[i].enMode                           = VIDEO_MODE_FRAME;
+        astSampleVdec[i].stSapmleVdecVideo.enDecMode      = VIDEO_DEC_MODE_IPB;
+        astSampleVdec[i].stSapmleVdecVideo.enBitWidth     = DATA_BITWIDTH_8;
+        astSampleVdec[i].stSapmleVdecVideo.u32RefFrameNum = 3;
+        astSampleVdec[i].u32DisplayFrameNum               = 2;
+        astSampleVdec[i].u32FrameBufCnt = astSampleVdec[i].stSapmleVdecVideo.u32RefFrameNum + astSampleVdec[i].u32DisplayFrameNum + 1;
+    }
+    s32Ret = SAMPLE_COMM_VDEC_InitVBPool(u32VdecChnNum, &astSampleVdec[0]);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("init mod common vb fail for %#x!\n", s32Ret);
+        goto END2;
+    }
+
+    /************************************************
+    step3:  start VDEC
+    *************************************************/
+    s32Ret = SAMPLE_COMM_VDEC_Start(u32VdecChnNum, &astSampleVdec[0]);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("start VDEC fail for %#x!\n", s32Ret);
+        goto END3;
+    }
+
+    /************************************************
+    step4:  start VPSS
+    *************************************************/
+    stVpssGrpAttr.u32MaxW = 3840;
+    stVpssGrpAttr.u32MaxH = 2160;
+    stVpssGrpAttr.stFrameRate.s32SrcFrameRate = -1;
+    stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
+    stVpssGrpAttr.enDynamicRange = DYNAMIC_RANGE_SDR8;
+    stVpssGrpAttr.enPixelFormat  = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    stVpssGrpAttr.bNrEn   = HI_FALSE;
+
+    memset(abChnEnable, 0, sizeof(abChnEnable));
+    abChnEnable[0] = HI_TRUE;
+    astVpssChnAttr[0].u32Width                    = stDispSizeUHD.u32Width;
+    astVpssChnAttr[0].u32Height                   = stDispSizeUHD.u32Height;
+    astVpssChnAttr[0].enChnMode                   = VPSS_CHN_MODE_USER;
+    astVpssChnAttr[0].enCompressMode              = COMPRESS_MODE_SEG;
+    astVpssChnAttr[0].enDynamicRange              = DYNAMIC_RANGE_SDR8;
+    astVpssChnAttr[0].enPixelFormat               = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    astVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
+    astVpssChnAttr[0].stFrameRate.s32DstFrameRate = -1;
+    astVpssChnAttr[0].u32Depth                    = 0;
+    astVpssChnAttr[0].bMirror                     = HI_FALSE;
+    astVpssChnAttr[0].bFlip                       = HI_FALSE;
+    astVpssChnAttr[0].stAspectRatio.enMode        = ASPECT_RATIO_NONE;
+    astVpssChnAttr[0].enVideoFormat               = VIDEO_FORMAT_LINEAR;
+    for(i=0; i<u32VdecChnNum; i++)
+    {
+        VpssGrp = i;
+        s32Ret = SAMPLE_COMM_VPSS_Start(VpssGrp, &abChnEnable[0], &stVpssGrpAttr, &astVpssChnAttr[0]);
+        if(s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("start VPSS fail for %#x!\n", s32Ret);
+            goto END4;
+        }
+    }
+
+    /************************************************
+    step5:  start VO Dev UHD(DHD0-hdmi)
+    *************************************************/
+    stVoConfigUHD.VoDev                 = SAMPLE_VO_DEV_UHD;
+    stVoConfigUHD.enVoIntfType          = VO_INTF_HDMI;
+    stVoConfigUHD.enIntfSync            = enIntfSync;
+    stVoConfigUHD.enPicSize             = enDispPicSize;
+    stVoConfigUHD.u32BgColor            = COLOR_RGB_BLUE;
+    stVoConfigUHD.u32DisBufLen          = 3;
+    stVoConfigUHD.enDstDynamicRange     = DYNAMIC_RANGE_SDR8;
+    stVoConfigUHD.enVoMode              = VO_MODE_1MUX;
+    stVoConfigUHD.enPixFormat           = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    stVoConfigUHD.stDispRect.s32X       = 0;
+    stVoConfigUHD.stDispRect.s32Y       = 0;
+    stVoConfigUHD.stDispRect.u32Width   = stDispSizeUHD.u32Width;
+    stVoConfigUHD.stDispRect.u32Height  = stDispSizeUHD.u32Height;
+    stVoConfigUHD.stImageSize.u32Width  = stDispSizeUHD.u32Width;
+    stVoConfigUHD.stImageSize.u32Height = stDispSizeUHD.u32Height;
+    stVoConfigUHD.enVoPartMode          = VO_PART_MODE_SINGLE;
+    s32Ret = SAMPLE_COMM_VO_StartVO(&stVoConfigUHD);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("start VO %d fail for %#x!\n", stVoConfigUHD.VoDev, s32Ret);
+        goto END5;
+    }
+
+    /************************************************
+    step6:  start VO Dev HD(DHD1-mipi_tx)
+    *************************************************/
+    //stDispSizeHD.u32Width  = 1080;
+    //stDispSizeHD.u32Height = 1920;
+    stDispSizeHD.u32Width  = 1280;
+    stDispSizeHD.u32Height = 800;
+    //stDispSizeHD.u32Height = 720;
+    stVoConfigHD.VoDev                 = SAMPLE_VO_DEV_HD;
+    stVoConfigHD.enVoIntfType          = VO_INTF_MIPI;
+    //stVoConfigHD.enIntfSync            = VO_OUTPUT_1080x1920_60;
+    //stVoConfigHD.enIntfSync            = VO_OUTPUT_1280x800_60;
+    //stVoConfigHD.enIntfSync            = VO_OUTPUT_720P60;
+    stVoConfigHD.enIntfSync            = VO_OUTPUT_USER;
+    stVoConfigHD.enPicSize             = PIC_1280x800;
+    stVoConfigHD.u32BgColor            = COLOR_RGB_CYN;
+    stVoConfigHD.u32DisBufLen          = 3;
+    stVoConfigHD.enDstDynamicRange     = DYNAMIC_RANGE_SDR8;
+    stVoConfigHD.enVoMode              = VO_MODE_1MUX;
+    stVoConfigHD.enPixFormat           = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    stVoConfigHD.stDispRect.s32X       = 0;
+    stVoConfigHD.stDispRect.s32Y       = 0;
+    stVoConfigHD.stDispRect.u32Width   = stDispSizeHD.u32Width;
+    stVoConfigHD.stDispRect.u32Height  = stDispSizeHD.u32Height;
+    stVoConfigHD.stImageSize.u32Width  = stDispSizeHD.u32Width;
+    stVoConfigHD.stImageSize.u32Height = stDispSizeHD.u32Height;
+    stVoConfigHD.enVoPartMode          = VO_PART_MODE_SINGLE;
+    s32Ret = SAMPLE_COMM_VO_StartVO2(&stVoConfigHD);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("start VO %d fail for %#x!\n", stVoConfigHD.VoDev, s32Ret);
+        goto END6;
+    }
+
+
+    /************************************************
+    step7:  VDEC bind VPSS
+    *************************************************/
+    for(i=0; i<u32VdecChnNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_VDEC_Bind_VPSS(i, i);
+        if(s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("vdec bind vpss fail for %#x!\n", s32Ret);
+            goto END7;
+        }
+    }
+
+    /************************************************
+    step8:  VPSS bind VO Layer 0
+    *************************************************/
+    VoLayer = stVoConfigUHD.VoDev;
+    for(i=0; i<VpssGrpNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_VPSS_Bind_VO(i, 0, VoLayer, i);
+        if(s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("vpss bind vo fail for %#x!\n", s32Ret);
+            goto END8;
+        }
+    }
+
+    /************************************************
+    step9:  VPSS bind VO Layer 1
+    *************************************************/
+    VoLayer = stVoConfigHD.VoDev;
+    for(i=0; i<VpssGrpNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_VPSS_Bind_VO(i, 0, VoLayer, i);
+        if(s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("vpss bind vo fail for %#x!\n", s32Ret);
+            goto END9;
+        }
+    }
+
+    /************************************************
+    step10:  send stream to VDEC
+    *************************************************/
+    for(i=0; i<u32VdecChnNum; i++)
+    {
+        snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "3840x2160_8bit.h264");
+        snprintf(stVdecSend[i].cFilePath, sizeof(stVdecSend[i].cFilePath), "%s", SAMPLE_STREAM_PATH);
+        stVdecSend[i].enType          = astSampleVdec[i].enType;
+        stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;
+        stVdecSend[i].s32ChnId        = i;
+        stVdecSend[i].s32IntervalTime = 1000;
+        stVdecSend[i].u64PtsInit      = 0;
+        stVdecSend[i].u64PtsIncrease  = 0;
+        stVdecSend[i].eThreadCtrl     = THREAD_CTRL_START;
+        stVdecSend[i].bCircleSend     = HI_TRUE;
+        stVdecSend[i].s32MilliSec     = 0;
+        stVdecSend[i].s32MinBufSize   = (astSampleVdec[i].u32Width * astSampleVdec[i].u32Height * 3)>>1;
+    }
+    SAMPLE_COMM_VDEC_StartSendStream(u32VdecChnNum, &stVdecSend[0], &VdecThread[0]);
+
+    SAMPLE_COMM_VDEC_CmdCtrl(u32VdecChnNum, &stVdecSend[0], &VdecThread[0]);
+
+    SAMPLE_COMM_VDEC_StopSendStream(u32VdecChnNum, &stVdecSend[0], &VdecThread[0]);
+
+END9:
+    VoLayer = stVoConfigHD.VoDev;
+    for(i=0; i<VpssGrpNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(i, 0, VoLayer, i);
+        if(s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("vpss unbind vo (%d,%d) fail for %#x!\n",VoLayer, i, s32Ret);
+        }
+    }
+END8:
+    VoLayer = stVoConfigUHD.VoDev;
+    for(i=0; i<VpssGrpNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_VPSS_UnBind_VO(i, 0, VoLayer, i);
+        if(s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("vpss unbind vo (%d,%d) fail for %#x!\n",VoLayer, i, s32Ret);
+        }
+    }
+END7:
+    for(i=0; i<u32VdecChnNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_VDEC_UnBind_VPSS(i, i);
+        if(s32Ret != HI_SUCCESS)
+        {
+            SAMPLE_PRT("vdec unbind vpss fail for %#x!\n", s32Ret);
+        }
+    }
+END6:
+    SAMPLE_COMM_VO_StopVO(&stVoConfigHD);
+END5:
+    SAMPLE_COMM_VO_StopVO(&stVoConfigUHD);
+
+END4:
+    for(i = VpssGrp; i >= 0; i--)
+    {
+        VpssGrp = i;
+        SAMPLE_COMM_VPSS_Stop(VpssGrp, &abChnEnable[0]);
+    }
+END3:
+    SAMPLE_COMM_VDEC_Stop(u32VdecChnNum);
+
+END2:
+    SAMPLE_COMM_VDEC_ExitVBPool();
+
+END1:
+    SAMPLE_COMM_SYS_Exit();
+
+    return s32Ret;
+}
+
 HI_S32 SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx(HI_VOID)
 {
     VB_CONFIG_S         stVbConfig;
@@ -2160,14 +2469,16 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_H265_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
     //stDispSizeHD.u32Width  = 1080;
     //stDispSizeHD.u32Height = 1920;
     stDispSizeHD.u32Width  = 1280;
-    //stDispSizeHD.u32Height = 800;
-    stDispSizeHD.u32Height = 720;
+    stDispSizeHD.u32Height = 800;
+    //stDispSizeHD.u32Height = 720;
     stVoConfigHD.VoDev                 = SAMPLE_VO_DEV_HD;
     stVoConfigHD.enVoIntfType          = VO_INTF_MIPI;
     //stVoConfigHD.enIntfSync            = VO_OUTPUT_1080x1920_60;
     //stVoConfigHD.enIntfSync            = VO_OUTPUT_1280x800_60;
-    stVoConfigHD.enIntfSync            = VO_OUTPUT_720P60;
-    stVoConfigHD.enPicSize             = PIC_720P;
+    //stVoConfigHD.enIntfSync            = VO_OUTPUT_720P60;
+    stVoConfigHD.enIntfSync            = VO_OUTPUT_USER;
+    //stVoConfigHD.enPicSize             = PIC_720P;
+    stVoConfigHD.enPicSize             = PIC_1280x800;
     stVoConfigHD.u32BgColor            = COLOR_RGB_CYN;
     stVoConfigHD.u32DisBufLen          = 3;
     stVoConfigHD.enDstDynamicRange     = DYNAMIC_RANGE_SDR8;
@@ -2391,6 +2702,11 @@ END1:
         case '7':
         {
             s32Ret = SAMPLE_H265_VDEC_VPSS_VO_MIPI_Tx();
+            break;
+        }
+        case '8':
+        {
+            s32Ret = SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2();
             break;
         }
         default :

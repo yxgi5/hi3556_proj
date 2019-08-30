@@ -1287,11 +1287,11 @@ HI_S32 SAMPLE_COMM_VO_StartVO2(SAMPLE_VO_CONFIG_S *pstVoConfig)
     {
         stLayerAttr.stDispRect = pstVoConfig->stDispRect;
     }
-    stLayerAttr.stImageSize.u32Width  = stLayerAttr.stDispRect.u32Width;
-    stLayerAttr.stImageSize.u32Height = stLayerAttr.stDispRect.u32Height;
+    //stLayerAttr.stImageSize.u32Width  = stLayerAttr.stDispRect.u32Width;
+    //stLayerAttr.stImageSize.u32Height = stLayerAttr.stDispRect.u32Height;
 
-    stLayerAttr.stImageSize.u32Width  = stLayerAttr.stDispRect.u32Width;
-    stLayerAttr.stImageSize.u32Height = stLayerAttr.stDispRect.u32Height;
+    stLayerAttr.stImageSize.u32Width  = 1280;
+    stLayerAttr.stImageSize.u32Height = 720;
 
     /******************************
     //Set image size if changed.
@@ -1863,17 +1863,19 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
     //stVoConfigHD.enIntfSync            = VO_OUTPUT_720P60;
     stVoConfigHD.enIntfSync            = VO_OUTPUT_USER;
     stVoConfigHD.enPicSize             = PIC_1280x800;
-    stVoConfigHD.u32BgColor            = COLOR_RGB_CYN;
+    //stVoConfigHD.enPicSize             = PIC_720P;
+    stVoConfigHD.u32BgColor            = COLOR_RGB_BLACK;
     stVoConfigHD.u32DisBufLen          = 3;
     stVoConfigHD.enDstDynamicRange     = DYNAMIC_RANGE_SDR8;
     stVoConfigHD.enVoMode              = VO_MODE_1MUX;
     stVoConfigHD.enPixFormat           = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
-    stVoConfigHD.stDispRect.s32X       = 0;
-    stVoConfigHD.stDispRect.s32Y       = 0;
-    stVoConfigHD.stDispRect.u32Width   = stDispSizeHD.u32Width;
-    stVoConfigHD.stDispRect.u32Height  = stDispSizeHD.u32Height;
-    stVoConfigHD.stImageSize.u32Width  = stDispSizeHD.u32Width;
-    stVoConfigHD.stImageSize.u32Height = stDispSizeHD.u32Height;
+    stVoConfigHD.stDispRect.s32X       = 400;
+    stVoConfigHD.stDispRect.s32Y       = 40;
+    stVoConfigHD.stDispRect.u32Width   = 880;
+    stVoConfigHD.stDispRect.u32Height  = 720;
+    stVoConfigHD.stImageSize.u32Width  = 400;
+    //stVoConfigHD.stImageSize.u32Height = stDispSizeHD.u32Height;
+    stVoConfigHD.stImageSize.u32Height = 2000;
     stVoConfigHD.enVoPartMode          = VO_PART_MODE_SINGLE;
     s32Ret = SAMPLE_COMM_VO_StartVO2(&stVoConfigHD);
     if(s32Ret != HI_SUCCESS)

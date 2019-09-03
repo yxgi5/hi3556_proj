@@ -178,6 +178,12 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
         u32Width  = 1920;
         u32Height = 1080;
     }
+    else if (VO_INTF_MIPI == g_enVoIntfType)
+    {
+        u32Width  = 1280;
+        u32Height = 800;
+        //u32Height = 720;
+    }
     else
     {
         u32Width  = 1920;
@@ -263,20 +269,23 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
     SAMPLE_PRT("wait 4 seconds\n");
     usleep(4 * 1000 * 1000);
 
-
+    SAMPLE_PRT("pstInfo->enColorFmt = %d\n", pstInfo->enColorFmt);
     switch (enClrFmt = pstInfo->enColorFmt)
     {
         case HIFB_FMT_ARGB8888:
+            SAMPLE_PRT("enClrFmt = %d\n", enClrFmt);
             var.transp = s_a32;
             var.red    = s_r32;
             var.green  = s_g32;
             var.blue   = s_b32;
             var.bits_per_pixel = 32;
-            u32Color         = HIFB_RED_8888;
+            //u32Color         = HIFB_RED_8888;
+            u32Color         = 0xFF00ff00;
             enTdeClrFmt      = TDE2_COLOR_FMT_ARGB8888;
             g_osdColorFmt    = OSD_COLOR_FMT_RGB8888;
             break;
         default:
+            SAMPLE_PRT("enClrFmt! = %d\n", enClrFmt);
             var.transp = s_a16;
             var.red    = s_r16;
             var.green  = s_g16;
@@ -559,6 +568,8 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
                 stSrc.u8Alpha0      = 0XFF;
                 stSrc.u8Alpha1      = 0XFF;
 
+                SAMPLE_PRT("stSrc.enColorFmt = %d\n", stSrc.enColorFmt);
+                SAMPLE_PRT("stDst.enColorFmt = %d\n", stDst.enColorFmt);
                 /* TDE job step 1. start job */
                 s32Handle = HI_TDE2_BeginJob();
                 if (HI_ERR_TDE_INVALID_HANDLE == s32Handle)
@@ -774,6 +785,12 @@ HI_VOID* SAMPLE_HIFB_REFRESH(void* pData)
     {
         maxW = 1920;
         maxH = 1080;
+    }
+    else if (VO_INTF_MIPI == g_enVoIntfType)
+    {
+        maxW  = 1280;
+        maxH = 800;
+        //maxH = 720;
     }
     else
     {
@@ -1162,13 +1179,44 @@ HI_S32 SAMPLE_HIFB_StartVO(VO_DEVICE_INFO*   pstVoDevInfo)
     {
         stPubAttr.enIntfSync = VO_OUTPUT_1080P60;
     }
+    else if(VO_INTF_MIPI == enVoIntfType)
+    {
+    #if 1
+        stPubAttr.enIntfSync = VO_OUTPUT_USER;
+        stPubAttr.stSyncInfo.bSynm = 0;     /* RW; sync mode(0:timing,as BT.656; 1:signal,as LCD) */
+        stPubAttr.stSyncInfo.bIop = 1;      /* RW; interlaced or progressive display(0:i; 1:p) */
+        stPubAttr.stSyncInfo.u8Intfb = 0;   /* RW; interlace bit width while output */
+          
+        stPubAttr.stSyncInfo.u16Vact = 800;  /* RW; vertical active area */
+        stPubAttr.stSyncInfo.u16Vbb = 15;    /* RW; vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Vfb = 5;    /* RW; vertical front blank porch */
+            
+        stPubAttr.stSyncInfo.u16Hact = 1280;   /* RW; horizontal active area */
+        stPubAttr.stSyncInfo.u16Hbb = 110;    /* RW; horizontal back blank porch */
+        stPubAttr.stSyncInfo.u16Hfb = 110;    /* RW; horizontal front blank porch */
+        stPubAttr.stSyncInfo.u16Hmid = 0;   /* RW; bottom horizontal active area */
+           
+        stPubAttr.stSyncInfo.u16Bvact = 0;  /* RW; bottom vertical active area */
+        stPubAttr.stSyncInfo.u16Bvbb = 0;   /* RW; bottom vertical back blank porch */
+        stPubAttr.stSyncInfo.u16Bvfb = 0;   /* RW; bottom vertical front blank porch */
+          
+        stPubAttr.stSyncInfo.u16Hpw = 40;    /* RW; horizontal pulse width */
+        stPubAttr.stSyncInfo.u16Vpw = 5;    /* RW; vertical pulse width */
+            
+        stPubAttr.stSyncInfo.bIdv = 0;      /* RW; inverse data valid of output */
+        stPubAttr.stSyncInfo.bIhs = 0;      /* RW; inverse horizontal synch signal */
+        stPubAttr.stSyncInfo.bIvs = 0;      /* RW; inverse vertical synch signal */
+    #else
+        stPubAttr.enIntfSync = VO_OUTPUT_720P60;
+    #endif
+    }
     else
     {
         stPubAttr.enIntfSync = VO_OUTPUT_1080P60;
     }
 
     stPubAttr.enIntfType = enVoIntfType;
-    stPubAttr.u32BgColor = COLOR_RGB_BLUE;
+    stPubAttr.u32BgColor = COLOR_RGB_BLACK;
     s32Ret = SAMPLE_COMM_VO_GetWH(stPubAttr.enIntfSync, &stSize.u32Width, \
                                   &stSize.u32Height, &u32VoFrmRate);
     if (HI_SUCCESS != s32Ret)
@@ -1208,6 +1256,10 @@ HI_S32 SAMPLE_HIFB_StartVO(VO_DEVICE_INFO*   pstVoDevInfo)
     if(VO_INTF_HDMI == enVoIntfType)
     {
         SAMPLE_COMM_VO_HdmiStart(stPubAttr.enIntfSync);
+    }
+    if(VO_INTF_MIPI == enVoIntfType)
+    {
+        SAMPLE_COMM_VO_StartMipiTx(stPubAttr.enIntfSync);
     }
 
     return HI_SUCCESS;
@@ -1460,7 +1512,7 @@ HI_S32 SAMPLE_HIFB_NoneBufMode(VO_DEVICE_INFO * pstVoDevInfo)
     *****************************************/
     stInfo0.layer   =  VoDev;
     stInfo0.fd      = -1;
-    stInfo0.ctrlkey =  3;    /* None buffer */
+    stInfo0.ctrlkey =  3;    /* None buffer */ // HiFB um P13
     stInfo0.bCompress = HI_FALSE;
     stInfo0.enColorFmt = HIFB_FMT_ABGR1555;
     if (0 != pthread_create(&g_stHifbThread, 0, SAMPLE_HIFB_REFRESH, (void*)(&stInfo0)))
@@ -1660,10 +1712,12 @@ int main(int argc, char* argv[])
     if (SAMPLE_VO_DEV_DHD1 == stVoDevInfo.VoDev && VO_INTF_HDMI == stVoDevInfo.enVoIntfType)
     {
         printf("\n**********************************************************\n*");
-        SAMPLE_PRT("DHD1 does not support HDMI output interface*\n");
+        SAMPLE_PRT("DHD1 does not support HDMI output, use mipi_tx now*\n");
         printf("**********************************************************\n\n");
-        SAMPLE_HIFB_Usage1(argv[0]);
-        return HI_FAILURE;
+        //SAMPLE_HIFB_Usage1(argv[0]);
+        //return HI_FAILURE;
+        stVoDevInfo.enVoIntfType = VO_INTF_MIPI;
+        
     }
 
     /******************************************

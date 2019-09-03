@@ -1875,7 +1875,7 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO_MIPI_Tx2(HI_VOID)
     stVoConfigHD.stDispRect.u32Height  = 720;
     stVoConfigHD.stImageSize.u32Width  = 400;
     //stVoConfigHD.stImageSize.u32Height = stDispSizeHD.u32Height;
-    stVoConfigHD.stImageSize.u32Height = 2000;
+    stVoConfigHD.stImageSize.u32Height = 1000;
     stVoConfigHD.enVoPartMode          = VO_PART_MODE_SINGLE;
     s32Ret = SAMPLE_COMM_VO_StartVO2(&stVoConfigHD);
     if(s32Ret != HI_SUCCESS)

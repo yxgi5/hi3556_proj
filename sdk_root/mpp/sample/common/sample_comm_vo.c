@@ -131,6 +131,7 @@ combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
     .lane_id = {0, 1, 2, 3},
     .output_mode = OUTPUT_MODE_DSI_VIDEO,
     .output_format = OUT_FORMAT_RGB_24_BIT,
+    //.output_format = OUT_FORMAT_YUV420_8_BIT_NORMAL,
     .video_mode =  BURST_MODE,
     .sync_info = {
         .vid_pkt_size     = 1280,

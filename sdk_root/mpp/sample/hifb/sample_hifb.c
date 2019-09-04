@@ -165,6 +165,9 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
     HI_U32                   u32Color        = HIFB_RED_1555;
     HI_CHAR                  thdname[64];
 
+    VO_CSC_S                 stGraphicCSC     = {0};
+
+
     if (HI_NULL == pData)
     {
         return HI_NULL;
@@ -358,6 +361,24 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
 
     memset(pShowScreen, 0x0, fix.smem_len);
 
+
+    s32Ret = HI_MPI_VO_GetGraphicLayerCSC(pstInfo->layer, &stGraphicCSC);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+        return s32Ret;
+    }
+    SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+    stGraphicCSC.enCscMatrix =VO_CSC_MATRIX_IDENTITY;
+    s32Ret = HI_MPI_VO_SetGraphicLayerCSC(pstInfo->layer, &stGraphicCSC);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VO_SetGraphicLayerCSC failed!\n");
+        return s32Ret;
+    }
+    SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+
+
     /* time to play*/
     bShow = HI_TRUE;
     if (ioctl(pstInfo->fd, FBIOPUT_SHOW_HIFB, &bShow) < 0)
@@ -403,6 +424,14 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
             */
             SAMPLE_PRT("expected: the red box will appear!\n");
             sleep(2);
+            s32Ret = HI_MPI_VO_GetGraphicLayerCSC(pstInfo->layer, &stGraphicCSC);
+            if (HI_SUCCESS != s32Ret)
+            {
+                SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+                return s32Ret;
+            }
+            SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+    
             stAlpha.bAlphaEnable = HI_TRUE;
             stAlpha.u8Alpha0     = 0x0;
             stAlpha.u8Alpha1     = 0x0;
@@ -414,6 +443,14 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
             }
             SAMPLE_PRT("expected: after set alpha = 0, the red box will disappear!\n");
             sleep(2);
+            s32Ret = HI_MPI_VO_GetGraphicLayerCSC(pstInfo->layer, &stGraphicCSC);
+            if (HI_SUCCESS != s32Ret)
+            {
+                SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+                return s32Ret;
+            }
+            SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+
 
             stAlpha.u8Alpha0 = 0;
             stAlpha.u8Alpha1 = 0xFF;
@@ -425,6 +462,14 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
             }
             SAMPLE_PRT("expected:after set set alpha = 0xFF, the red box will appear again!\n");
             sleep(2);
+            s32Ret = HI_MPI_VO_GetGraphicLayerCSC(pstInfo->layer, &stGraphicCSC);
+            if (HI_SUCCESS != s32Ret)
+            {
+                SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+                return s32Ret;
+            }
+            SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+
 
             SAMPLE_PRT("expected: the red box will erased by colorkey!\n");
             stColorKey.bKeyEnable = HI_TRUE;
@@ -438,6 +483,14 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
             }
             sleep(2);
             SAMPLE_PRT("expected: the red box will appear again!\n");
+            s32Ret = HI_MPI_VO_GetGraphicLayerCSC(pstInfo->layer, &stGraphicCSC);
+            if (HI_SUCCESS != s32Ret)
+            {
+                SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+                return s32Ret;
+            }
+            SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+            
             stColorKey.bKeyEnable = HI_FALSE;
             s32Ret = ioctl(pstInfo->fd, FBIOPUT_COLORKEY_HIFB, &stColorKey);
             if (s32Ret < 0)
@@ -1156,6 +1209,7 @@ HI_VOID SAMPLE_HIFB_Usage1(HI_CHAR* sPrgNm)
     printf("\n/****************intf******************/\n");
     printf("\t 0) VO HDMI output, default.\n");
     printf("\t 1) VO BT1120 output.\n");
+    printf("\t 2) VO MIPI-TX output.\n");
 
     return;
 }
@@ -1172,6 +1226,9 @@ HI_S32 SAMPLE_HIFB_StartVO(VO_DEVICE_INFO*   pstVoDevInfo)
     HI_U32                   u32VoFrmRate;
     SIZE_S                   stSize;
     HI_S32                   s32Ret;
+
+    GRAPHIC_LAYER            GraphicLayer     = {0};
+    VO_CSC_S                 stGraphicCSC     = {0};
 
     /******************************************
      * step 1(start vo):  start vo device.
@@ -1230,6 +1287,29 @@ HI_S32 SAMPLE_HIFB_StartVO(VO_DEVICE_INFO*   pstVoDevInfo)
     {
         SAMPLE_PRT("start vo device failed with %d!\n", s32Ret);
         return s32Ret;
+    }
+
+    GraphicLayer = pstVoDevInfo->VoDev; // if vodev = 1, then use GRAPHICS_LAYER_G1
+    if(VO_INTF_MIPI == enVoIntfType)
+    {
+        s32Ret = HI_MPI_VO_GetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+        
+        stGraphicCSC.enCscMatrix =VO_CSC_MATRIX_IDENTITY;
+        s32Ret = HI_MPI_VO_SetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_SetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
     }
 
     /******************************

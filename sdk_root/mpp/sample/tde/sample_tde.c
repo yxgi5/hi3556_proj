@@ -423,6 +423,37 @@ HI_S32 TDE_DrawGraphicSample()
 
     g_s32FrameNum = 0;
 
+
+        GRAPHIC_LAYER            GraphicLayer     = {0};
+        VO_CSC_S                 stGraphicCSC     = {0};
+        s32Ret = HI_MPI_VO_GetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+#if 0        
+        
+        GraphicLayer = VoDev; // if vodev = 1, then use GRAPHICS_LAYER_G1
+        s32Ret = HI_MPI_VO_GetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        stGraphicCSC.enCscMatrix =VO_CSC_MATRIX_RGB_TO_BT709_TV;
+        s32Ret = HI_MPI_VO_SetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_SetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+#endif
+
     /* 3. use tde and framebuffer to realize rotational effect */
     //for (u32Times = 0; u32Times < 20; u32Times++)
     while(1)
@@ -653,6 +684,29 @@ int main(int argc, char *argv[])
     /* if it's displayed on HDMI, we should start HDMI */
     if (stPubAttr.enIntfType & VO_INTF_HDMI)
     {
+        GRAPHIC_LAYER            GraphicLayer     = {0};
+        VO_CSC_S                 stGraphicCSC     = {0};
+        
+        s32Ret = HI_MPI_VO_GetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+        
+        //stGraphicCSC.enCscMatrix =VO_CSC_MATRIX_IDENTITY;
+        //SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+        s32Ret = HI_MPI_VO_SetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_SetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+        
         IntType = VO_INTF_HDMI;
         if (HI_SUCCESS != SAMPLE_COMM_VO_HdmiStart(stPubAttr.enIntfSync))
         {
@@ -663,6 +717,48 @@ int main(int argc, char *argv[])
     /* if it's displayed on MIPI, we should start MIPI */
     if (stPubAttr.enIntfType & VO_INTF_MIPI)
     {
+        GRAPHIC_LAYER            GraphicLayer     = {0};
+        VO_CSC_S                 stGraphicCSC     = {0};
+        VO_LAYER               VoLayer        = 0;
+        VO_CSC_S               stVideoCSC     = {0};
+        
+        GraphicLayer = VoDev; // if vodev = 1, then use GRAPHICS_LAYER_G1
+        s32Ret = HI_MPI_VO_GetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_GetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+        
+        stGraphicCSC.enCscMatrix =VO_CSC_MATRIX_IDENTITY;
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+        s32Ret = HI_MPI_VO_SetGraphicLayerCSC(GraphicLayer, &stGraphicCSC);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VO_SetGraphicLayerCSC failed!\n");
+            SAMPLE_COMM_VO_StopDev(VoDev);
+            return s32Ret;
+        }
+        SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
+
+//	        s32Ret = HI_MPI_VO_GetVideoLayerCSC(VoLayer, &stVideoCSC);
+//	        if (HI_SUCCESS != s32Ret)
+//	        {
+//	            SAMPLE_PRT("HI_MPI_VO_GetVideoLayerCSC failed!\n");
+//	            SAMPLE_COMM_VO_StopDev(VoDev);
+//	            return s32Ret;
+//	        }
+//	        stVideoCSC.enCscMatrix =VO_CSC_MATRIX_BT709_TO_RGB_PC;
+//	        s32Ret = HI_MPI_VO_SetVideoLayerCSC(VoLayer, &stVideoCSC);
+//	        if (HI_SUCCESS != s32Ret)
+//	        {
+//	            SAMPLE_PRT("HI_MPI_VO_SetVideoLayerCSC failed!\n");
+//	            SAMPLE_COMM_VO_StopDev(VoDev);
+//	            return s32Ret;
+//	        }
+
         IntType = VO_INTF_MIPI;
         if (HI_SUCCESS != SAMPLE_COMM_VO_StartMipiTx(stPubAttr.enIntfSync))
         {

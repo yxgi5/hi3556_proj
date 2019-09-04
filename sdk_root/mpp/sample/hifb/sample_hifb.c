@@ -279,8 +279,9 @@ HI_VOID* SAMPLE_HIFB_PANDISPLAY(void* pData)
             var.green  = s_g32;
             var.blue   = s_b32;
             var.bits_per_pixel = 32;
-            //u32Color         = HIFB_RED_8888;
-            u32Color         = 0xFF00ff00;
+            //var.nonstd = 1;
+            u32Color         = HIFB_RED_8888;
+            //u32Color         = 0xFF00FF00;
             enTdeClrFmt      = TDE2_COLOR_FMT_ARGB8888;
             g_osdColorFmt    = OSD_COLOR_FMT_RGB8888;
             break;

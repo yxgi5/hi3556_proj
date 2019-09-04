@@ -1661,6 +1661,7 @@ void SAMPLE_VO_SEL_Usage(HI_VOID)
     printf("\n/****************intf******************/\n");
     printf("\t 0) VO HDMI output, default.\n");
     printf("\t 1) VO BT1120 output.\n");
+    printf("\t 2) VO MIPI-TX output.\n");
     return;
 }
 
@@ -1718,7 +1719,21 @@ int main(int argc, char* argv[])
         //SAMPLE_HIFB_Usage1(argv[0]);
         //return HI_FAILURE;
         stVoDevInfo.enVoIntfType = VO_INTF_MIPI;
-        
+    }
+
+    if (SAMPLE_VO_DEV_DHD1 == stVoDevInfo.VoDev && VO_INTF_BT1120 == stVoDevInfo.enVoIntfType)
+    {
+        printf("\n**********************************************************\n*");
+        SAMPLE_PRT("DHD1 does not support BT1120 output, use mipi_tx now*\n");
+        printf("**********************************************************\n\n");
+        //SAMPLE_HIFB_Usage1(argv[0]);
+        //return HI_FAILURE;
+        stVoDevInfo.enVoIntfType = VO_INTF_MIPI;
+    }
+
+    if ((argc > 2) && *argv[3] == '2')  /* '2':  VO_INTF_MIPI*/
+    {
+        stVoDevInfo.enVoIntfType = VO_INTF_MIPI;
     }
 
     /******************************************

@@ -76,14 +76,14 @@ static const HI_CHAR *pszImageNames[] =
 #define SCREEN_HEIGHT   576
 #define CYCLE_LEN       60
 
-static HI_S32   g_s32FrameNum;
-static TDE2_SURFACE_S g_stScreen[2];
-static TDE2_SURFACE_S g_stBackGround;
-static TDE2_SURFACE_S g_stImgSur[N_IMAGES];
-HI_S32 g_s32Fd = -1;
-HI_U32 g_u32Size;
-HI_U8* g_pu8Screen = NULL;
-HI_U8* g_pu8BackGroundVir = NULL;
+//static HI_S32   g_s32FrameNum;
+//static TDE2_SURFACE_S g_stScreen[2];
+//static TDE2_SURFACE_S g_stBackGround;
+//static TDE2_SURFACE_S g_stImgSur[N_IMAGES];
+//HI_S32 g_s32Fd = -1;
+//HI_U32 g_u32Size;
+//HI_U8* g_pu8Screen = NULL;
+//HI_U8* g_pu8BackGroundVir = NULL;
 
 
 int IntType = 0;
@@ -181,7 +181,8 @@ static HI_S32 TDE_CreateSurfaceByFile(const HI_CHAR *pszFileName, TDE2_SURFACE_S
     return 0;
 }
 
-static HI_VOID circumrotate (HI_U32 u32CurOnShow)
+static HI_VOID circumrotate (HI_U32 u32CurOnShow, TDE2_SURFACE_S * p_stBackGround, \
+                                TDE2_SURFACE_S * p_stScreen, TDE2_SURFACE_S *p_stImgSur)
 {
     TDE_HANDLE s32Handle;
     TDE2_OPT_S stOpt = {0};
@@ -193,7 +194,9 @@ static HI_VOID circumrotate (HI_U32 u32CurOnShow)
     TDE2_RECT_S stSrcRect;
     TDE2_RECT_S stDstRect;
     HI_S32 s32Ret = HI_SUCCESS;
-
+    TDE2_SURFACE_S g_stBackGround = * p_stBackGround;
+    HI_S32   g_s32FrameNum;
+    
     u32NextOnShow = !u32CurOnShow;
 
     stOpt.enOutAlphaFrom = TDE2_COLORKEY_MODE_FOREGROUND;
@@ -225,7 +228,7 @@ static HI_VOID circumrotate (HI_U32 u32CurOnShow)
 
     /* 2. bitblt background to screen */
     s32Ret = HI_TDE2_QuickCopy(s32Handle, &g_stBackGround, &stSrcRect,
-        &g_stScreen[u32NextOnShow], &stSrcRect);
+        p_stScreen+u32NextOnShow, &stSrcRect);
     if(s32Ret < 0)
     {
         TDE_PRINT("Line:%d failed,ret=0x%x!\n", __LINE__, s32Ret);
@@ -240,21 +243,21 @@ static HI_VOID circumrotate (HI_U32 u32CurOnShow)
 
         stSrcRect.s32Xpos = 0;
         stSrcRect.s32Ypos = 0;
-        stSrcRect.u32Width = g_stImgSur[i].u32Width;
-        stSrcRect.u32Height = g_stImgSur[i].u32Height;
+        stSrcRect.u32Width = (*(p_stImgSur+i)).u32Width;
+        stSrcRect.u32Height = (*(p_stImgSur+i)).u32Height;
 
         /* 3. calculate new pisition */
         ang = 2.0f * (HI_FLOAT) M_PI * (HI_FLOAT) i / N_IMAGES - f * 2.0f * (HI_FLOAT) M_PI;
         r = eRadius + (eRadius / 3.0f) * sinf (f * 2.0 * M_PI);
 
-        stDstRect.s32Xpos = eXMid + r * cosf (ang) - g_stImgSur[i].u32Width / 2.0f;;
-        stDstRect.s32Ypos = eYMid + r * sinf (ang) - g_stImgSur[i].u32Height / 2.0f;
-        stDstRect.u32Width = g_stImgSur[i].u32Width;
-        stDstRect.u32Height = g_stImgSur[i].u32Height;
+        stDstRect.s32Xpos = eXMid + r * cosf (ang) - (*(p_stImgSur+i)).u32Width / 2.0f;;
+        stDstRect.s32Ypos = eYMid + r * sinf (ang) - (*(p_stImgSur+i)).u32Height / 2.0f;
+        stDstRect.u32Width = (*(p_stImgSur+i)).u32Width;
+        stDstRect.u32Height = (*(p_stImgSur+i)).u32Height;
 
         /* 4. bitblt image to screen */
-        s32Ret = HI_TDE2_Bitblit(s32Handle, &g_stScreen[u32NextOnShow], &stDstRect,
-            &g_stImgSur[i], &stSrcRect, &g_stScreen[u32NextOnShow], &stDstRect, &stOpt);
+        s32Ret = HI_TDE2_Bitblit(s32Handle, p_stScreen+u32NextOnShow, &stDstRect,
+            p_stImgSur+i, &stSrcRect, p_stScreen+u32NextOnShow, &stDstRect, &stOpt);
         if(s32Ret < 0)
         {
         	TDE_PRINT("Line:%d,HI_TDE2_Bitblit failed,ret=0x%x!\n", __LINE__, s32Ret);
@@ -287,6 +290,12 @@ HI_S32 TDE_DrawGraphicSample(void* pData)
     HIFB_ALPHA_S stAlpha = {0};
     HI_CHAR                  file[12]           = {0};
     PTHREAD_HIFB_SAMPLE_INFO* pstInfo;
+    HI_U32 u32Size;
+    HI_U8* pu8Screen = NULL;
+    TDE2_SURFACE_S g_stBackGround;
+    TDE2_SURFACE_S g_stScreen[2];
+    TDE2_SURFACE_S g_stImgSur[N_IMAGES];
+    HI_U8* g_pu8BackGroundVir = NULL;
 
     if (HI_NULL == pData)
     {
@@ -328,30 +337,30 @@ HI_S32 TDE_DrawGraphicSample(void* pData)
     }
 
     
-    g_s32Fd = open(file, O_RDWR);
-    if (g_s32Fd < 0)
+    pstInfo->fd = open(file, O_RDWR);
+    if (pstInfo->fd < 0)
     {
         TDE_PRINT("open frame buffer device error\n");
         goto FB_OPEN_ERROR;
     }
 
     bCompress = HI_FALSE ;
-    if (ioctl(g_s32Fd, FBIOPUT_COMPRESSION_HIFB, &bCompress) < 0)
+    if (ioctl(pstInfo->fd, FBIOPUT_COMPRESSION_HIFB, &bCompress) < 0)
     {
         TDE_PRINT(" FBIOPUT_COMPRESSION_HIFB failed!\n");
-        close(g_s32Fd);
+        close(pstInfo->fd);
         goto FB_PROCESS_ERROR2;
     }
     stAlpha.bAlphaChannel = HI_FALSE;
     stAlpha.bAlphaEnable = HI_FALSE;
-    if (ioctl(g_s32Fd, FBIOPUT_ALPHA_HIFB, &stAlpha) < 0)
+    if (ioctl(pstInfo->fd, FBIOPUT_ALPHA_HIFB, &stAlpha) < 0)
     {
         TDE_PRINT("Put alpha info failed!\n");
         goto FB_PROCESS_ERROR0;
     }
 
     /* get the variable screen info */
-    if (ioctl(g_s32Fd, FBIOGET_VSCREENINFO, &stVarInfo) < 0)
+    if (ioctl(pstInfo->fd, FBIOGET_VSCREENINFO, &stVarInfo) < 0)
     {
         TDE_PRINT("Get variable screen info failed!\n");
         goto FB_PROCESS_ERROR0;
@@ -370,25 +379,25 @@ HI_S32 TDE_DrawGraphicSample(void* pData)
     stVarInfo.blue  = stB32;
     stVarInfo.transp = stA32;
 
-    if (ioctl(g_s32Fd, FBIOPUT_VSCREENINFO, &stVarInfo) < 0)
+    if (ioctl(pstInfo->fd, FBIOPUT_VSCREENINFO, &stVarInfo) < 0)
     {
         TDE_PRINT("process frame buffer device error\n");
         goto FB_PROCESS_ERROR0;
     }
 
-    if (ioctl(g_s32Fd, FBIOGET_FSCREENINFO, &stFixInfo) < 0)
+    if (ioctl(pstInfo->fd, FBIOGET_FSCREENINFO, &stFixInfo) < 0)
     {
         TDE_PRINT("process frame buffer device error\n");
         goto FB_PROCESS_ERROR0;
     }
 
-    g_u32Size   = stFixInfo.smem_len;
+    u32Size   = stFixInfo.smem_len;
     u32PhyAddr  = stFixInfo.smem_start;
 #ifdef __HuaweiLite__
-    g_pu8Screen = stFixInfo.smem_start;
+    pu8Screen = stFixInfo.smem_start;
 #else
-    g_pu8Screen   = mmap(NULL, g_u32Size, PROT_READ|PROT_WRITE, MAP_SHARED, g_s32Fd, 0);
-    if (NULL == g_pu8Screen)
+    pu8Screen   = mmap(NULL, u32Size, PROT_READ|PROT_WRITE, MAP_SHARED, pstInfo->fd, 0);
+    if (NULL == pu8Screen)
     {
         TDE_PRINT("mmap fb0 failed!\n");
         goto FB_PROCESS_ERROR0;
@@ -437,7 +446,7 @@ HI_S32 TDE_DrawGraphicSample(void* pData)
 #endif
 
 
-    memset_s(g_pu8Screen, stFixInfo.smem_len, 0x00, stFixInfo.smem_len);
+    memset_s(pu8Screen, stFixInfo.smem_len, 0x00, stFixInfo.smem_len);
     /* 3. create surface */
     g_stScreen[0].enColorFmt = PIXFMT;
     g_stScreen[0].PhyAddr = u32PhyAddr;
@@ -469,13 +478,13 @@ HI_S32 TDE_DrawGraphicSample(void* pData)
             g_pu8BackGroundVir + ((HI_U32)g_stImgSur[i].PhyAddr - g_stBackGround.PhyAddr));
 
     bShow = HI_TRUE;
-    if (ioctl(g_s32Fd, FBIOPUT_SHOW_HIFB, &bShow) < 0)
+    if (ioctl(pstInfo->fd, FBIOPUT_SHOW_HIFB, &bShow) < 0)
     {
         fprintf (stderr, "Couldn't show fb\n");
         goto FB_PROCESS_ERROR2;
     }
 
-    g_s32FrameNum = 0;
+    //g_s32FrameNum = 0;
 
     /* 3. use tde and framebuffer to realize rotational effect */
     //for (u32Times = 0; u32Times < 20; u32Times++)
@@ -504,11 +513,11 @@ HI_S32 TDE_DrawGraphicSample(void* pData)
                 }
                 SAMPLE_PRT("stGraphicCSC.enCscMatrix = %d\n", stGraphicCSC.enCscMatrix);
             }
-	        circumrotate(u32Times%2);
+	        circumrotate(u32Times%2, &g_stBackGround, &g_stScreen, &g_stImgSur);
 	        stVarInfo.yoffset = (u32Times%2)?0:576;
 	
 	        /*set frame buffer start position*/
-	        if (ioctl(g_s32Fd, FBIOPAN_DISPLAY, &stVarInfo) < 0)
+	        if (ioctl(pstInfo->fd, FBIOPAN_DISPLAY, &stVarInfo) < 0)
 	        {
 	            TDE_PRINT("process frame buffer device error\n");
 	            goto FB_PROCESS_ERROR2;
@@ -523,13 +532,13 @@ FB_PROCESS_ERROR2:
     g_pu8BackGroundVir = NULL;
 FB_PROCESS_ERROR1:
 #ifndef __HuaweiLite__
-    (HI_VOID)munmap(g_pu8Screen, g_u32Size);
+    (HI_VOID)munmap(pu8Screen, u32Size);
 #endif
 
-    g_pu8Screen = NULL;
+    pu8Screen = NULL;
 FB_PROCESS_ERROR0:
-    close(g_s32Fd);
-    g_s32Fd = -1;
+    close(pstInfo->fd);
+    pstInfo->fd = -1;
 FB_OPEN_ERROR:
     HI_TDE2_Close();
 

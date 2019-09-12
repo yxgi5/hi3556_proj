@@ -914,7 +914,7 @@ static int sensor_config(char *s)
 
 static int ampunmute(void)
 {
-    SYS_WRITEL(reg_iocfg_base+0x2050 ,0x00000cf0);
+    SYS_WRITEL(reg_iocfg_base+0x2050 ,0x00000cf0); // GPIO14_7
 
     SYS_WRITEL(reg_gpio_base+0xe200 ,0x00000080);
     SYS_WRITEL(reg_gpio_base+0xe400 ,0x00000080);

@@ -24,7 +24,12 @@ extern "C" {
 #include "sample_comm.h"
 #include "hi_mipi_tx.h"
 #include "hi_i2c.h"
+#ifndef __LITEOS__
 #include <linux/i2c-dev.h>
+#else
+#include "i2c.h"
+#include "fcntl.h"
+#endif
 #include <termios.h>
 #include <sys/mman.h>
 

@@ -24,7 +24,12 @@ extern "C" {
 #include "sample_comm.h"
 #include "hi_mipi_tx.h"
 #include "hi_i2c.h"
+#ifndef __LITEOS__
 #include <linux/i2c-dev.h>
+#else
+#include "i2c.h"
+#include "fcntl.h"
+#endif
 #include <termios.h>
 #include <sys/mman.h>
 
@@ -43,6 +48,11 @@ extern "C" {
 #define GPIO_CTL_BASE 0x1214e000
 #define rGPBCON 0x400 
 #define rGPBDAT 0x0
+
+#define CFG_BASE  0x12010000
+#define rPERI_CRG73 0x0124
+#define rPERI_CRG_PLL14 0x0038
+#define rPERI_CRG_PLL15 0x003c
 
 #define SN65DSI83_ENABLE_MASK 0x01
 #define SN65DSI83_ENABLE_BIT 0x00
@@ -94,10 +104,57 @@ combo_dev_cfg_t MIPI_TX_1280X720_60_CONFIG =
         .vid_active_lines = 720,
         .edpi_cmd_size    = 0,
     },
-    .phy_data_rate = 459, // 1650*750*24*60/4=445.5
+    .phy_data_rate = 459, // 1650*750*24*60/4=445.5, 1x27MHzx17=459
     .pixel_clk = 74250, // // 1650*750*60
 };
-
+#if 0
+combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
+{
+    .devno = 0,
+    .lane_id = {0, 1, 2, 3},
+    .output_mode = OUTPUT_MODE_DSI_VIDEO,
+    .output_format = OUT_FORMAT_RGB_24_BIT,
+    .video_mode =  BURST_MODE,
+    .sync_info = {
+        .vid_pkt_size     = 1280,
+        .vid_hsa_pixels   = 40,
+        .vid_hbp_pixels   = 220,
+        .vid_hline_pixels = 1650,
+        .vid_vsa_lines    = 5,
+        .vid_vbp_lines    = 20,
+        .vid_vfp_lines    = 5,
+        .vid_active_lines = 720,
+        .edpi_cmd_size    = 0,
+    },
+    .phy_data_rate = 459, // 1650*750*24*60/4=445.5, 1x27MHzx17=459
+    .pixel_clk = 74250, // // 1650*750*60
+};
+#else
+combo_dev_cfg_t MIPI_TX_1280X800_60_CONFIG =
+{
+    .devno = 0,
+    .lane_id = {0, 1, 2, 3},
+    .output_mode = OUTPUT_MODE_DSI_VIDEO,
+    .output_format = OUT_FORMAT_RGB_24_BIT,
+    //.output_format = OUT_FORMAT_YUV420_8_BIT_NORMAL,
+    .video_mode =  BURST_MODE,
+    .sync_info = {
+        .vid_pkt_size     = 1280,
+        .vid_hsa_pixels   = 40,
+        .vid_hbp_pixels   = 220,
+        .vid_hline_pixels = 1650,
+        .vid_vsa_lines    = 5,
+        .vid_vbp_lines    = 20,
+        .vid_vfp_lines    = 5,
+        .vid_active_lines = 800,
+        .edpi_cmd_size    = 0,
+    },
+    //.phy_data_rate = 513, // 1650*830*24*60/4=493.05, 1x27MHzx19=513
+    //.pixel_clk = 82170, // // 1650*830*60
+    .phy_data_rate = 459, // 1650*830*24*60/4=493.05, 1x27MHzx19=513
+    .pixel_clk = 74250, // // 1650*830*60
+};
+#endif
 combo_dev_cfg_t MIPI_TX_1024X768_60_CONFIG =
 {
     .devno = 0,
@@ -406,9 +463,9 @@ HI_S32 SAMPLE_COMM_VO_GetWH(VO_INTF_SYNC_E enIntfSync, HI_U32* pu32W, HI_U32* pu
             *pu32Frm = 30;
             break;
         case VO_OUTPUT_USER    :
-            *pu32W = 720;
-            *pu32H = 576;
-            *pu32Frm = 25;
+            *pu32W = 1280;
+            *pu32H = 800;
+            *pu32Frm = 60;
             break;
         default:
             SAMPLE_PRT("vo enIntfSync %d not support!\n", enIntfSync);
@@ -430,13 +487,155 @@ HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S* pstPubAttr)
         return HI_FAILURE;
     }
 
+/*
+如果
+u32Postdiv1 = 4;
+u32Postdiv2 = 2;
+u32PreDiv = 1;//u32PreDiv = 2; // u32PreDiv = 0; #这里好像没有发生效果， 一个屌样
+
+那么
+
+vdec 
+devmem 0x12010028 w 0x24000000 #无效
+devmem 0x12010038 w 0x18000000
+
+tde 
+devmem 0x12010028 w 0x24000000
+devmem 0x12010038 w 0x18000000
+
+
+
+
+如果
+u32Postdiv1 = 4;
+u32Postdiv2 = 4;
+u32PreDiv = 1;//u32PreDiv = 2; // u32PreDiv = 0; #这里好像没有发生效果， 一个屌样
+
+那么
+
+vdec 
+devmem 0x12010028 w 0x44000000 #无效
+devmem 0x12010038 w 0x12000000
+
+tde 
+devmem 0x12010028 w 0x24000000
+devmem 0x12010038 w 0x12000000
+*/  
+    
+    if(pstPubAttr->enIntfSync == VO_OUTPUT_USER)
+    {
+        HI_U32 u32Framerate, u32Width, u32Height;
+        //SAMPLE_PRT("wait here\n");
+	    //getchar();
+        //if(VoDev == 0)
+        {
+            VO_USER_INTFSYNC_INFO_S stUserInfo = {0};
+            /* Fill user sync info */
+            stUserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_PLL;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Fbdiv = 99;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Frac= 0;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Refdiv = 2;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv1 = 4;
+            stUserInfo.stUserIntfSyncAttr.stUserSyncPll.u32Postdiv2 = 4;
+            //UserInfo.stUserIntfSyncAttr.enClkSource = VO_CLK_SOURCE_LCDMCLK;
+            //UserInfo.stUserIntfSyncAttr.u32LcdMClkDiv = 1;
+            stUserInfo.u32DevDiv = 2;
+            stUserInfo.bClkReverse = HI_TRUE;
+            stUserInfo.u32PreDiv = 1; // no effect ?
+            /* Set user interface sync info */
+            s32Ret = HI_MPI_VO_SetUserIntfSyncInfo(VoDev, &stUserInfo);
+            if (s32Ret != HI_SUCCESS)
+            {
+                SAMPLE_PRT("Set user interface sync info failed with %#x.\n",s32Ret);
+                return HI_FAILURE;
+            }
+
+            printf("VoDev = %d\n", VoDev);
+
+            s32Ret = SAMPLE_COMM_VO_GetWH(pstPubAttr->enIntfSync,
+                                      &u32Width, &u32Height,
+                                      &u32Framerate);
+            
+            s32Ret = HI_MPI_VO_SetDevFrameRate(VoDev, u32Framerate);
+            if (s32Ret != HI_SUCCESS)
+            {
+                SAMPLE_PRT("Set user interface Framerate failed with %#x.\n",s32Ret);
+                return HI_FAILURE;
+            }
+        }
+        #if 0
+        // vdp_hd1_cksel
+        if(VoDev == 1)
+        {
+            int crg_fd;
+            void *crg_cfg;
+            unsigned int * PERI_CRG73 = NULL;
+
+            crg_fd =open("/dev/mem",O_RDWR); 
+            if (crg_fd == -1) 
+            { 
+            	SAMPLE_PRT("can't open /dev/mem.\n"); 
+            	close(crg_fd); 
+            }
+            else
+            {
+            	crg_cfg = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, crg_fd, CFG_BASE & ~MAP_MASK);
+            	crg_cfg = crg_cfg + (CFG_BASE & MAP_MASK);  // virtual address
+            	PERI_CRG73 = (volatile unsigned int *) (crg_cfg + rPERI_CRG73);
+            	*(volatile unsigned int *) PERI_CRG73 = ((*(volatile unsigned int *) PERI_CRG73) & (~(0x7 << 18))) | (0x1 << 18);
+            	close(crg_fd); 
+            }
+        }
+        #else
+        //else if(VoDev == 1)
+        {
+            int crg_fd;
+            void *crg_cfg;
+            unsigned int * PERI_CRG_PLL14 = NULL;
+            unsigned int * PERI_CRG_PLL15 = NULL;
+            unsigned int * PERI_CRG73 = NULL;
+            
+            crg_fd =open("/dev/mem",O_RDWR); 
+            if (crg_fd == -1) 
+            { 
+            	SAMPLE_PRT("can't open /dev/mem.\n"); 
+            	close(crg_fd); 
+            }
+            else
+            {
+            	crg_cfg = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, crg_fd, CFG_BASE & ~MAP_MASK);
+            	crg_cfg = crg_cfg + (CFG_BASE & MAP_MASK);  // virtual address
+            	PERI_CRG_PLL14 = (volatile unsigned int *) (crg_cfg + rPERI_CRG_PLL14);
+                PERI_CRG_PLL15 = (volatile unsigned int *) (crg_cfg + rPERI_CRG_PLL15);
+                PERI_CRG73 = (volatile unsigned int *) (crg_cfg + rPERI_CRG73);
+            	*(volatile unsigned int *) PERI_CRG_PLL14 = 0x12000000;
+                *(volatile unsigned int *) PERI_CRG_PLL15 = 0x01002063;
+                *(volatile unsigned int *) PERI_CRG73 = ((*(volatile unsigned int *) PERI_CRG73) & (~(0x7 << 18))) | (0x7 << 18);
+            	close(crg_fd); 
+            }
+
+        
+            printf("VoDev = %d\n", VoDev);
+
+            s32Ret = SAMPLE_COMM_VO_GetWH(pstPubAttr->enIntfSync,
+                                      &u32Width, &u32Height,
+                                      &u32Framerate);
+            
+            s32Ret = HI_MPI_VO_SetDevFrameRate(VoDev, u32Framerate);
+            if (s32Ret != HI_SUCCESS)
+            {
+                SAMPLE_PRT("Set user interface Framerate failed with %#x.\n",s32Ret);
+                return HI_FAILURE;
+            }
+        }
+        #endif
+    }
     s32Ret = HI_MPI_VO_Enable(VoDev);
     if (s32Ret != HI_SUCCESS)
     {
-        SAMPLE_PRT("failed with %#x!\n", s32Ret);
+        SAMPLE_PRT("Enable vo dev failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
-
     return s32Ret;
 }
 
@@ -1616,7 +1815,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 	
 	
 	*(volatile unsigned int *)GPBDAT= (SN65DSI83_DISABLE & SN65DSI83_ENABLE_MASK) << SN65DSI83_ENABLE_BIT; 
-	usleep(10000);
+	usleep(100000);
 	*(volatile unsigned int *)GPBDAT= (SN65DSI83_ENABLE & SN65DSI83_ENABLE_MASK) << SN65DSI83_ENABLE_BIT;
 	usleep(100000);
 	
@@ -2024,7 +2223,7 @@ static HI_VOID SAMPLE_PRIVATE_VO_InitScreen1280x720(HI_S32 s32fd)
 		goto EXIT1;
 	}
 
-	usleep(10000);
+	usleep(100000);
 	
 	buffer[0]=0x09; // reg address
 	buffer[1]=0x01; // reg value
@@ -4452,6 +4651,12 @@ static void SAMPLE_PRIVATE_VO_InitMipiTxScreen(VO_INTF_SYNC_E enVoIntfSync, HI_S
 		// init screen for 1280x720_60.
 		SAMPLE_PRIVATE_VO_InitScreen1280x720(fd);
 	}
+    else if (VO_OUTPUT_USER == enVoIntfSync)
+    {
+        SAMPLE_PRT("%s,%d,Init 1280x800 screen.\n",__FUNCTION__,__LINE__);
+		// init screen for 1280x720_60.
+		SAMPLE_PRIVATE_VO_InitScreen1280x720(fd);
+    }
     else
     {
         SAMPLE_PRT("%s,%d,Init 1080p screen.\n",__FUNCTION__,__LINE__);
@@ -4510,6 +4715,9 @@ void SAMPLE_COMM_VO_StartMipiTx(VO_INTF_SYNC_E enVoIntfSync)
             break;
         case VO_OUTPUT_1080x1920_60:
             pstMipiTxConfig = &MIPI_TX_1080X1920_60_CONFIG;
+            break;
+        case VO_OUTPUT_USER:
+            pstMipiTxConfig = &MIPI_TX_1280X800_60_CONFIG;
             break;
         default :
             pstMipiTxConfig = &MIPI_TX_1080X1920_60_CONFIG;

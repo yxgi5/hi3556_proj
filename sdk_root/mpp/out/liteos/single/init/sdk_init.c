@@ -391,11 +391,32 @@ static void dc12_pin_mux(void)
     himm(0x1F0010c0 ,0x000014f3); // iocfg_reg124 VOU1120_DATA14 cfg as VI0_DATA9
     himm(0x1F0010bc ,0x000014f3); // iocfg_reg123 VOU1120_DATA13 cfg as VI0_DATA10
     himm(0x1F0010b8 ,0x000014f3); // iocfg_reg122 VOU1120_DATA12 cfg as VI0_DATA11
-//	    himm(0x1F0010b4 ,0x000014f3); // iocfg_reg121 VOU1120_DATA11 cfg as VI0_DATA12
-//	    himm(0x1F0010b0 ,0x000014f3); // iocfg_reg120 VOU1120_DATA10 cfg as VI0_DATA13
-//	    himm(0x1F0010ac ,0x000014f3); // iocfg_reg119 VOU1120_DATA9 cfg as VI0_DATA14
-//	    himm(0x1F0010a8 ,0x000014f3); // iocfg_reg118 VOU1120_DATA8 cfg as VI0_DATA15
+    himm(0x1F0010ac ,0x000014f6); // iocfg_reg119 VOU1120_DATA9 cfg as VI0_HS
+    himm(0x1F0010a8 ,0x000014f6); // iocfg_reg118 VOU1120_DATA8 cfg as VI0_VS
     //echo "========digital_camera_pin_mux done========="
+}
+
+static int sn65dsi83_pinmux(void)
+{
+	//PWM GPIO14_0
+	himm(0x1F000124 ,0x00001600);
+    himm(0x1214e004 ,0x00000001);
+    himm(0x1214e400 ,0x00000001); // dir
+    himm(0x1214e004 ,0x00000001);
+    
+    //BLE GPIO16_3
+    himm(0x1F0010d4 ,0x00001600);
+    himm(0x12150020 ,0x00000008);
+    himm(0x12150400 ,0x00000008); // dir
+    himm(0x12150020 ,0x00000008);
+    
+    //CSE GPIO0_6
+    himm(0x1F0000b8 ,0x00001600);
+    himm(0x12140100 ,0x00000008);
+    himm(0x12140400 ,0x00000008); // dir
+    himm(0x12140100 ,0x00000008);
+
+    return 0;
 }
 
 static void pinmux_cfg(void)
@@ -418,7 +439,7 @@ static void pinmux_cfg(void)
     i2c11_pin_mux();
 
     //#bt1120
-    vo_bt1120_mode();
+    //vo_bt1120_mode();
 
     //#lcd_24bit
     //vo_lcd_mode()
@@ -431,8 +452,10 @@ static void pinmux_cfg(void)
     // vo_mipi_tx_mode();
 
     hmdi_pin_mode();
+    
+	sn65dsi83_pinmux();
 
-    i2s_pin_mux();
+    //i2s_pin_mux();
 }
 
 //# open module clock while you need it!
@@ -846,15 +869,21 @@ static HI_VOID sensor_config(void)
     }
     else if(!strcmp(sensor_type0, "ov9712"))
     {
+		i2c0_pin_mux();
         dc12_pin_mux();
-        himm(0x12010104, 0x00c28e00);
+        himm(0x12010104, 0x00c28e00); // PERI_CRG65 vi_p5_cksel 0x101
+        himm(0x12030098, 0x40); // MISC_CTRL38 VICAP mode reg 0
+        himm(0x1203009c, 0x0); // MISC_CTRL39 VICAP mode reg 1
         himm(0x12010114, 0x74747474); // PERI_CRG69 reset
         himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz
     }
     else if(!strcmp(sensor_type0, "ov426"))
     {
+		i2c0_pin_mux();
         dc12_pin_mux();
-        himm(0x12010104, 0x00c28e00);
+        himm(0x12010104, 0x00c28e00); // PERI_CRG65 vi_p5_cksel 0x101
+        himm(0x12030098, 0x40); // MISC_CTRL38 VICAP mode reg 0
+        himm(0x1203009c, 0x0); // MISC_CTRL39 VICAP mode reg 1
         himm(0x12010114, 0x74747474); // PERI_CRG69 reset
         himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz
     }

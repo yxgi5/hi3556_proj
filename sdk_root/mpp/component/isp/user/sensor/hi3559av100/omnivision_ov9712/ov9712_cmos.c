@@ -135,29 +135,30 @@ static HI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSnsD
     pstAeSnsDft->au8HistThresh[3] = 0x80;
 
     pstAeSnsDft->u8AeCompensation = 0x38;
+	pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
     
     pstAeSnsDft->stIntTimeAccu.enAccuType = AE_ACCURACY_LINEAR;
     pstAeSnsDft->stIntTimeAccu.f32Accuracy = 1;
-    pstAeSnsDft->stIntTimeAccu.f32Offset = 0;
+    pstAeSnsDft->stIntTimeAccu.f32Offset = 0.156;
     pstAeSnsDft->u32MaxIntTime = pstSnsState->u32FLStd - 2;
-    pstAeSnsDft->u32MinIntTime = 1;
+    pstAeSnsDft->u32MinIntTime = 2;
     pstAeSnsDft->u32MaxIntTimeTarget = 65535;
     pstAeSnsDft->u32MinIntTimeTarget = 1;
 
-    pstAeSnsDft->stAgainAccu.enAccuType = AE_ACCURACY_DB;
-    pstAeSnsDft->stAgainAccu.f32Accuracy = 6;
-    pstAeSnsDft->u32MaxAgain = 4;/* 1, 2, 4, ... 16 (0~24db, unit is 6db) */
-    pstAeSnsDft->u32MinAgain = 0;
-    pstAeSnsDft->u32MaxAgainTarget = 4;
-    pstAeSnsDft->u32MinAgainTarget = 0;
+    pstAeSnsDft->stAgainAccu.enAccuType = AE_ACCURACY_TABLE;
+    pstAeSnsDft->stAgainAccu.f32Accuracy = 1;
+    pstAeSnsDft->u32MaxAgain = 31356;/* 1, 2, 4, ... 16 (0~24db, unit is 6db) */
+    pstAeSnsDft->u32MinAgain = 1024;
+    pstAeSnsDft->u32MaxAgainTarget = pstAeSnsDft->u32MaxAgain;
+    pstAeSnsDft->u32MinAgainTarget = pstAeSnsDft->u32MinAgain;
 
-    pstAeSnsDft->stDgainAccu.enAccuType = AE_ACCURACY_LINEAR;
-    pstAeSnsDft->stDgainAccu.f32Accuracy = 0.0625;
+    pstAeSnsDft->stDgainAccu.enAccuType = AE_ACCURACY_TABLE;
+    pstAeSnsDft->stDgainAccu.f32Accuracy = 1;
 	/* 1 ~ 31/16, unit is 1/16 */
-    pstAeSnsDft->u32MaxDgain = 31;  /* if Dgain enable,please set ispdgain bigger than 1*/
-    pstAeSnsDft->u32MinDgain = 16;
-    pstAeSnsDft->u32MaxDgainTarget = 32;
-    pstAeSnsDft->u32MinDgainTarget = 16;
+    pstAeSnsDft->u32MaxDgain = 128913;  /* if Dgain enable,please set ispdgain bigger than 1*/
+    pstAeSnsDft->u32MinDgain = 1024;
+    pstAeSnsDft->u32MaxDgainTarget = pstAeSnsDft->u32MaxDgain;
+    pstAeSnsDft->u32MinDgainTarget = pstAeSnsDft->u32MinDgainTarget;
 
     pstAeSnsDft->u32ISPDgainShift = 8;
     pstAeSnsDft->u32MinISPDgainTarget = 1 << pstAeSnsDft->u32ISPDgainShift;
@@ -173,6 +174,10 @@ static HI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSnsD
     pstAeSnsDft->stAERouteAttr.u32TotalNum = 0;
     pstAeSnsDft->stAERouteAttrEx.u32TotalNum = 0;
 
+    if (g_au32InitExposure[ViPipe] == 0)
+    {
+        pstAeSnsDft->u32InitExposure = 1000000;
+    }
     /*For some OV sensors, AERunInterval needs to be set more than 1*/    
     pstAeSnsDft->u8AERunInterval = 2;
 
@@ -329,52 +334,94 @@ static HI_VOID cmos_inttime_update(VI_PIPE ViPipe, HI_U32 u32IntTime)
     return;
 }
 
+static HI_U32 gain_table[262] =
+{
+    1024,  1059,  1097,  1135,  1175,  1217,  1259,  1304,  1349,  1397,  1446,  1497,  1549,  1604,  1660,  1719,  1779,  1842,  1906,
+    1973,  2043,  2048,  2119,  2194,  2271,  2351,  2434,  2519,  2608,  2699,  2794,  2892,  2994,  3099,  3208,  3321,  3438,  3559,
+    3684,  3813,  3947,  4086,  4229,  4378,  4532,  4691,  4856,  5027,  5203,  5386,  5576,  5772,  5974,  6184,  6402,  6627,  6860,
+    7101,  7350,  7609,  7876,  8153,  8439,  8736,  9043,  9361,  9690, 10030, 10383, 10748, 11125, 11516, 11921, 12340, 12774, 13222,
+    13687, 14168, 14666, 15182, 15715, 16267, 16839, 17431, 18043, 18677, 19334, 20013, 20717, 21445, 22198, 22978, 23786, 24622, 25487,
+    26383, 27310, 28270, 29263, 30292, 31356, 32458, 33599, 34780, 36002, 37267, 38577, 39932, 41336, 42788, 44292, 45849, 47460, 49128,
+    50854, 52641, 54491, 56406, 58388, 60440, 62564, 64763, 67039, 69395, 71833, 74358, 76971, 79676, 82476, 85374, 88375, 91480, 94695,
+    98023, 101468, 105034, 108725, 112545, 116501, 120595, 124833, 129220, 133761, 138461, 143327, 148364, 153578, 158975, 164562, 170345, 176331, 182528,
+    188942, 195582, 202455, 209570, 216935, 224558, 232450, 240619, 249074, 257827, 266888, 276267, 285976, 296026, 306429, 317197, 328344, 339883, 351827,
+    364191, 376990, 390238, 403952, 418147, 432842, 448053, 463799, 480098, 496969, 514434, 532512, 551226, 570597, 590649, 611406, 632892, 655133, 678156,
+    701988, 726657, 752194, 778627, 805990, 834314, 863634, 893984, 925400, 957921, 991585, 1026431, 1062502, 1099841, 1138491, 1178500, 1219916, 1262786,
+    1307163, 1353100, 1400651, 1449872, 1500824, 1553566, 1608162, 1664676, 1723177, 1783733, 1846417, 1911304, 1978472, 2048000, 2119971, 2194471, 2271590,
+    2351418, 2434052, 2519590, 2608134, 2699789, 2794666, 2892876, 2994538, 3099773, 3208706, 3321467, 3438190, 3559016, 3684087, 3813554, 3947571, 4086297,
+    4229898, 4378546, 4532417, 4691696, 4856573, 5027243, 5203912, 5386788, 5576092, 5772048, 5974890, 6184861, 6402210, 6627198, 6860092, 7101170, 7350721,
+    7609041, 7876439, 8153234
+};
+
 static HI_VOID cmos_again_calc_table(VI_PIPE ViPipe, HI_U32 *pu32AgainLin, HI_U32 *pu32AgainDb)
 {
-    *pu32AgainDb = (*pu32AgainLin >> 3);
-    
+    int i;
+
+    CMOS_CHECK_POINTER_VOID(pu32AgainLin);
+    CMOS_CHECK_POINTER_VOID(pu32AgainDb);
+
+	printf("AgainLin=%d, AgainDb=%d\n", *pu32AgainLin, *pu32AgainDb);
+    if (*pu32AgainLin >= gain_table[100])
+    {
+        *pu32AgainLin = gain_table[100];
+        *pu32AgainDb = 100;
+        return ;
+    }
+
+    for (i = 1; i < 101; i++)
+    {
+        if (*pu32AgainLin < gain_table[i])
+        {
+            *pu32AgainLin = gain_table[i - 1];
+            *pu32AgainDb = i - 1;
+            break;
+        }
+    }
     return;
 }
 
 static HI_VOID cmos_dgain_calc_table(VI_PIPE ViPipe, HI_U32 *pu32DgainLin, HI_U32 *pu32DgainDb)
 {
-    //*pu32AgainLin = (*pu32AgainLin >> 10) << 10;
+    int i;
+
+    CMOS_CHECK_POINTER_VOID(pu32DgainLin);
+    CMOS_CHECK_POINTER_VOID(pu32DgainDb);
+
+	printf("DgainLin=%d, DgainDb=%d\n", *pu32DgainLin, *pu32DgainDb);
+    if (*pu32DgainLin >= gain_table[140])
+    {
+        *pu32DgainLin = gain_table[140];
+        *pu32DgainDb = 140;
+        return ;
+    }
+
+    for (i = 1; i < 141; i++)
+    {
+        if (*pu32DgainLin < gain_table[i])
+        {
+            *pu32DgainLin = gain_table[i - 1];
+            *pu32DgainDb = i - 1;
+            break;
+        }
+    }
+
     return;
 }
 
 static HI_VOID cmos_gains_update(VI_PIPE ViPipe, HI_U32 u32Again, HI_U32 u32Dgain)
 {
     ISP_SNS_STATE_S *pstSnsState = HI_NULL;
-    HI_U8 u8High, u8Low;
+    HI_U32 u32Tmp;
 
     OV9712_SENSOR_GET_CTX(ViPipe, pstSnsState);
     CMOS_CHECK_POINTER_VOID(pstSnsState);
+	printf("u32Again = #%x, u32Dgain = #%x\n", u32Again, u32Dgain);
     
-    switch (u32Again)
-    {
-        case 0 :    /* 0db, 1 multiplies */
-            u8High = 0x00;
-            break;
-        case 1 :    /* 6db, 2 multiplies */
-            u8High = 0x10;
-            break;
-        case 2 :    /* 12db, 4 multiplies */
-            u8High = 0x30;
-            break;
-        case 3 :    /* 18db, 8 multiplies */
-            u8High = 0x70;
-            break;
-        case 4 :    /* 24db, 16 multiplies */
-            u8High = 0xf0;
-            break;
-        default:
-            u8High = 0x00;
-            break;
-    }
-    
-    u8Low = (u32Dgain - 16) & 0xf;
+    u32Tmp = u32Again + u32Dgain;
+	//u32Tmp = u32Again;
 
-    pstSnsState->astRegsInfo[0].astI2cData[2].u32Data = (u8High | u8Low);
+    pstSnsState->astRegsInfo[0].astI2cData[2].u32Data = u32Tmp;
+	printf("gain = #%x\n", pstSnsState->astRegsInfo[0].astI2cData[2].u32Data);
     return;
 }
 
@@ -532,12 +579,12 @@ static HI_S32 cmos_init_ae_exp_function(AE_SENSOR_EXP_FUNC_S *pstExpFuncs)
 #define CALIBRATE_STATIC_WB_B_GAIN  0x179
 
 /* Calibration results for Auto WB Planck */
-#define CALIBRATE_AWB_P1 95
-#define CALIBRATE_AWB_P2 45
-#define CALIBRATE_AWB_Q1 -116
-#define CALIBRATE_AWB_A1 182769
+#define CALIBRATE_AWB_P1 -41
+#define CALIBRATE_AWB_P2 297
+#define CALIBRATE_AWB_Q1 0
+#define CALIBRATE_AWB_A1 155760
 #define CALIBRATE_AWB_B1 128
-#define CALIBRATE_AWB_C1 -132156
+#define CALIBRATE_AWB_C1 -105396
 
 /* Rgain and Bgain of the golden sample */
 #define GOLDEN_RGAIN 0
@@ -552,7 +599,7 @@ static HI_S32 cmos_get_awb_default(VI_PIPE ViPipe, AWB_SENSOR_DEFAULT_S *pstAwbS
 
     memset(pstAwbSnsDft, 0, sizeof(AWB_SENSOR_DEFAULT_S));
 
-    pstAwbSnsDft->u16WbRefTemp = 5120;
+    pstAwbSnsDft->u16WbRefTemp = 4900;
 
     pstAwbSnsDft->au16GainOffset[0] = CALIBRATE_STATIC_WB_R_GAIN;
     pstAwbSnsDft->au16GainOffset[1] = CALIBRATE_STATIC_WB_GR_GAIN;

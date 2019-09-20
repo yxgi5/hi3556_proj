@@ -23,7 +23,7 @@ ARFLAGS = rcv
 ARFLAGS_SO = $(LIBS_LD_CFLAGS)
 ARFLAGS_SO += -shared -fPIC -o
 CFLAGS  += -Wall -fPIC -D$(HI_FPGA)
-CFLAGS  += -O2
+CFLAGS  += -O0
 CFLAGS  += $(LIBS_CFLAGS)
 
 ifeq ($(ISP_INI_CONFIG), y)

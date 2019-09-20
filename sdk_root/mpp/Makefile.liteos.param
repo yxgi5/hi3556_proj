@@ -1,0 +1,67 @@
+
+ifeq ($(HIARCH), hi3559av100es)
+    export LITEOS_PLATFORM?=hi3559av100es
+else ifeq ($(HIARCH), hi3559av100)
+    export LITEOS_PLATFORM?=hi3559av100
+else ifeq ($(HIARCH), hi3519av100)
+    export LITEOS_PLATFORM?=hi3519av100
+endif
+
+    # use C01 to indicate uclibc, C02 to  indicate glibc, C00 to indicate FPGA.
+ifeq ($(FPGA), y)
+    export CVER?=.C$(DBG_FLAG)0
+else ifeq ($(LIBC),glibc)
+    export CVER?=.C$(DBG_FLAG)2
+else
+    export CVER?=.C$(DBG_FLAG)1
+endif
+
+##############################################################################
+export KERNEL_NAME=liteos_a53
+
+# Allocated the kernel position
+ifeq ($(MPP_BUILD), y)
+    ifeq ($(HIARCH),$(filter $(HIARCH), hi3559av100es))
+	    export KERNEL_ROOT?=$(HIWORK_PATH)/liteos$(HIARCH)$(CVER)/platform/liteos/$(KERNEL_NAME)/liteos
+	else ifeq ($(HIARCH),$(filter $(HIARCH), hi3559av100))
+	    export KERNEL_ROOT?=$(HIWORK_PATH)/osdrv$(HIARCH)$(CVER)/platform/$(KERNEL_NAME)/liteos
+	else ifeq ($(HIARCH),$(filter $(HIARCH), hi3519av100))
+		export KERNEL_ROOT?=$(HIWORK_PATH)/osdrv$(HI_SUBARCH)$(CVER)/platform/liteos
+	else
+		export KERNEL_ROOT?=$(HIWORK_PATH)/osdrv$(HIARCH)$(CVER)/platform/liteos
+    endif	
+else
+    ifeq ($(HIARCH),$(filter $(HIARCH), hi3559av100))
+        export KERNEL_ROOT?=$(SDK_PATH)/osdrv/platform/$(KERNEL_NAME)/liteos
+    else
+        export KERNEL_ROOT?=$(SDK_PATH)/../../osdrv/platform/liteos
+    endif
+endif
+
+ifeq ($(HIARCH),$(filter $(HIARCH), hi3559av100))
+	OSDRV_PATH:=$(KERNEL_ROOT)/../../..
+else
+	OSDRV_PATH:=$(KERNEL_ROOT)/../..
+endif
+
+##############################################################################
+
+export LITEOSTOPDIR=$(KERNEL_ROOT)
+include $(LITEOSTOPDIR)/config.mk
+
+export LITEOS_CXXFLAGS
+export CROSS := $(CROSS_COMPILE)
+export CC
+export AR
+
+export REL_INC := $(REL_DIR)/include
+export REL_LIB := $(REL_DIR)/lib
+export REL_KO  := $(REL_DIR)/lib
+
+CFLAGS := -fno-builtin -nostdinc -nostdlib
+CFLAGS += $(LITEOS_CFLAGS)
+CFLAGS += $(LIBS_CFLAGS)
+CFLAGS += $(MPP_CFLAGS)
+CFLAGS += -D__HuaweiLite__ -D__KERNEL__
+
+export CFLAGS

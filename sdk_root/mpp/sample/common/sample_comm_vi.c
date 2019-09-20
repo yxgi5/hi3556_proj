@@ -1054,7 +1054,7 @@ VI_DEV_ATTR_S DEV_ATTR_OV9712_DC_720P_BASE =
     /* multiplex mode */
     VI_WORK_MODE_1Multiplex,
     /* ComponentMask */
-    {0xFFF00000,    0x0},
+    {0x0FFC0000,    0x0},
     /* progessive or interleaving */
     VI_SCAN_PROGRESSIVE,
     /*AdChnId*/
@@ -1212,9 +1212,9 @@ VI_PIPE_ATTR_S PIPE_ATTR_1280x720_RAW12_420_3DNR_RFR =
 {
     VI_PIPE_BYPASS_NONE, HI_FALSE,HI_FALSE,
     1280, 720,
-    PIXEL_FORMAT_RGB_BAYER_12BPP,
+    PIXEL_FORMAT_RGB_BAYER_10BPP,
     COMPRESS_MODE_LINE,
-    DATA_BITWIDTH_12,
+    DATA_BITWIDTH_10,
     HI_TRUE,
     {
         PIXEL_FORMAT_YVU_SEMIPLANAR_420,

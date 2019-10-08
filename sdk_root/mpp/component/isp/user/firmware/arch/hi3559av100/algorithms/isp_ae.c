@@ -1046,7 +1046,7 @@ HI_S32 ISP_AeRun(VI_PIPE ViPipe, const HI_VOID *pStatInfo,
 
     stAeInfo.pstFEAeStat1 = &pIspStatInfo->stFEAeStat1;
     stAeInfo.pstFEAeStat2 = &pIspStatInfo->stFEAeStat2;
-    printf("pIspStatInfo->stFEAeStat2.u16GlobalAvgB = %d\n", pIspStatInfo->stFEAeStat2.u16GlobalAvgB);
+    //printf("pIspStatInfo->stFEAeStat2.u16GlobalAvgB = %d\n", pIspStatInfo->stFEAeStat2.u16GlobalAvgB);
     
     stAeInfo.pstFEAeStat3 = &pIspStatInfo->stFEAeStat3;
     stAeInfo.pstBEAeStat1 = &pIspStatInfo->stBEAeStat1;

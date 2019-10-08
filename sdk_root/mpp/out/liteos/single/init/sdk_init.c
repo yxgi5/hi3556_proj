@@ -464,13 +464,14 @@ static void clk_cfg(void)
     himm(0x12010104, 0x006db6db);  //#MIPI_RX 600M
     himm(0x12010108, 0x006db6db);  //#ISP 600M
     himm(0x1201010c, 0x000db030);  //#(VI_PPC VIPROC0/ offline) 600M
-    himm(0x12010100, 0x00000000);  //#VICAP VIPROC ISP LOW-POWER clock
+    himm(0x12010100, 0x00002000);  //#VICAP VIPROC ISP LOW-POWER clock
 
-    himm(0x1201011c, 0x00002017);
+    himm(0x1201011c, 0x00002011);
     himm(0x1201011c, 0x00000011);  //# AIAO(50M 1188M)and MIPITX clk and reset
 
     himm(0x12010120, 0x2815e4c3);  //# AIAO&LCD clk and reset
-
+    
+    himm(0x12010160, 0x00000015);  //#(JPEGD 500M;  PNG 396M)
     himm(0x12010164, 0x00fdbfff);  //#(VEDU 710M; JPGE 750M;  VPSS GDC AVS 600M;  VGS 631M)
     himm(0x12010168, 0x00000005);  //#VPSS offline(IVE 750M;VDH 568M  GME 600M)
 
@@ -548,6 +549,28 @@ himm 0x12032038  0x77776666    #each module 3bit:
 #endif
 }
 
+static void vi_vpss_offline_config(void)
+{
+    himm(0x12032000, 0x00000011);
+    himm(0x12032004, 0x00454545);
+    himm(0x12032008, 0x44444545);
+    himm(0x1203200c, 0x55554545);
+    himm(0x12032010, 0x55003333);
+    himm(0x12032014, 0x67676767);
+    himm(0x12032018, 0x33666767);
+    himm(0x1203201c, 0x00000000);
+    himm(0x12032020, 0x11333333);
+    //himm(0x12032024, 0x33333333);
+    //himm(0x12032028, 0x33333333);
+	himm(0x12032024, 0x66336633);
+    himm(0x12032028, 0x66336633);
+    himm(0x1203202c, 0x00444444);
+    himm(0x12032030, 0x55552211);
+    himm(0x12032034, 0x55550000);
+    himm(0x12032038, 0x77776666);
+}
+
+
 static void amp_unmute(void)
 {
     himm(0x1F002050, 0x00000cf0);
@@ -577,9 +600,10 @@ static void qosbuf(void)
 
 static void sys_ctl(void)
 {
-    amp_unmute();
+    //amp_unmute();
     qosbuf();
-    vi_vpss_online_config();
+    //vi_vpss_online_config();
+    vi_vpss_offline_config();
 }
 
 static HI_VOID SYS_cfg(void)
@@ -871,8 +895,8 @@ static HI_VOID sensor_config(void)
     {
 		i2c0_pin_mux();
         dc12_pin_mux();
-        himm(0x12010104, 0x00c28e00); // PERI_CRG65 vi_p5_cksel 0x101
-        himm(0x12030098, 0x40); // MISC_CTRL38 VICAP mode reg 0
+        himm(0x12010104, 0x00028000); // PERI_CRG65 vi_p5_cksel 0x101
+        himm(0x12030098, 0x20); // MISC_CTRL38 VICAP mode reg 0
         himm(0x1203009c, 0x0); // MISC_CTRL39 VICAP mode reg 1
         himm(0x12010114, 0x74747474); // PERI_CRG69 reset
         himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz
@@ -882,7 +906,7 @@ static HI_VOID sensor_config(void)
 		i2c0_pin_mux();
         dc12_pin_mux();
         himm(0x12010104, 0x00c28e00); // PERI_CRG65 vi_p5_cksel 0x101
-        himm(0x12030098, 0x40); // MISC_CTRL38 VICAP mode reg 0
+        himm(0x12030098, 0x20); // MISC_CTRL38 VICAP mode reg 0
         himm(0x1203009c, 0x0); // MISC_CTRL39 VICAP mode reg 1
         himm(0x12010114, 0x74747474); // PERI_CRG69 reset
         himm(0x12010114, 0x14141414); // PERI_CRG69 sensor clk 0~3 24MHz

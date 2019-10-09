@@ -39,6 +39,8 @@ void SAMPLE_VENC_Usage(char* sPrgNm)
     printf("\t  3) IntraRefresh:H.265e@4K@60fps + H264e@4K@60fps.\n");
     printf("\t  4) Qpmap:H.265e@4K + H264e@4K@60fps.\n");
     printf("\t  5) Mjpeg@4K@60fps +Jpeg@4K.\n");
+    printf("\t  6) H.265e@720p@30fps +H.264e@720p@30fps.\n");
+    printf("\t  7) H.265e@720p@30fps +Jpeg@720p.\n");
 
     return;
 }
@@ -1443,6 +1445,355 @@ EXIT_VI_STOP:
     return s32Ret;
 }
 
+HI_S32 SAMPLE_VENC_H265_JPEG(void)
+{
+    HI_S32 i;
+    char  ch;
+    HI_S32 s32Ret;
+    SIZE_S          stSize[2];
+    PIC_SIZE_E      enSize[2]     = {PIC_720P, PIC_720P};
+
+    HI_S32          s32ChnNum     = 2;
+    VENC_CHN        VencChn[2]    = {0,1};
+    HI_U32          u32Profile[2] = {0,1};
+    PAYLOAD_TYPE_E  enPayLoad[2]  = {PT_H265, PT_JPEG};
+    VENC_GOP_MODE_E enGopMode;
+    VENC_GOP_ATTR_S stGopAttr;
+    SAMPLE_RC_E     enRcMode;
+    HI_BOOL         bSupportDcf   = HI_TRUE;
+
+    VI_DEV          ViDev        = 5;
+    VI_PIPE         ViPipe       = 0;
+    VI_CHN          ViChn        = 0;
+    SAMPLE_VI_CONFIG_S stViConfig;
+
+    VPSS_GRP        VpssGrp        = 0;
+    VPSS_CHN        VpssChn[2]     = {0,1};
+    HI_BOOL         abChnEnable[4] = {1,1,0,0};
+
+    HI_U32 u32SupplementConfig = HI_FALSE;
+
+    for(i=0; i<s32ChnNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_SYS_GetPicSize(enSize[i], &stSize[i]);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("SAMPLE_COMM_SYS_GetPicSize failed!\n");
+            return s32Ret;
+        }
+    }
+
+    SAMPLE_COMM_VI_GetSensorInfo(&stViConfig);
+
+    if(SAMPLE_SNS_TYPE_BUTT == stViConfig.astViInfo[0].stSnsInfo.enSnsType)
+    {
+        SAMPLE_PRT("Not set SENSOR%d_TYPE !\n",0);
+        return HI_FAILURE;
+    }
+
+    s32Ret = SAMPLE_VENC_CheckSensor(stViConfig.astViInfo[0].stSnsInfo.enSnsType,stSize[0]);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("Check Sensor err!\n");
+        return HI_FAILURE;
+    }
+
+    stViConfig.s32WorkingViNum       = 1;
+    stViConfig.astViInfo[0].stDevInfo.ViDev     = ViDev;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[0] = ViPipe;
+    stViConfig.astViInfo[0].stChnInfo.ViChn     = ViChn;
+    stViConfig.astViInfo[0].stChnInfo.enDynamicRange = DYNAMIC_RANGE_SDR8;
+    stViConfig.astViInfo[0].stChnInfo.enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    s32Ret = SAMPLE_VENC_VI_Init(&stViConfig, HI_FALSE,u32SupplementConfig);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("Init VI err for %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+    s32Ret = SAMPLE_VENC_VPSS_Init(VpssGrp,abChnEnable,DYNAMIC_RANGE_SDR8,PIXEL_FORMAT_YVU_SEMIPLANAR_420,stSize,stViConfig.astViInfo[0].stSnsInfo.enSnsType);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Init VPSS err for %#x!\n", s32Ret);
+        goto EXIT_VI_STOP;
+    }
+
+    s32Ret = SAMPLE_COMM_VI_Bind_VPSS(ViPipe, ViChn, VpssGrp);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("VI Bind VPSS err for %#x!\n", s32Ret);
+        goto EXIT_VPSS_STOP;
+    }
+
+   /******************************************
+     start stream venc
+    ******************************************/
+
+    enRcMode = SAMPLE_VENC_GetRcMode();
+
+    enGopMode = SAMPLE_VENC_GetGopMode();
+    s32Ret = SAMPLE_COMM_VENC_GetGopAttr(enGopMode,&stGopAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Get GopAttr for %#x!\n", s32Ret);
+        goto EXIT_VI_VPSS_UNBIND;
+    }
+
+   /***encode h.265 **/
+    s32Ret = SAMPLE_COMM_VENC_Start(VencChn[0], enPayLoad[0],enSize[0], enRcMode,u32Profile[0],&stGopAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Start failed for %#x!\n", s32Ret);
+        goto EXIT_VI_VPSS_UNBIND;
+    }
+
+    s32Ret = SAMPLE_COMM_VPSS_Bind_VENC(VpssGrp, VpssChn[0],VencChn[0]);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Get GopAttr failed for %#x!\n", s32Ret);
+        goto EXIT_VENC_H265_STOP;
+    }
+
+    /***encode Jpege **/
+    s32Ret = SAMPLE_COMM_VENC_SnapStart(VencChn[1], &stSize[1], bSupportDcf);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Start failed for %#x!\n", s32Ret);
+        goto EXIT_VENC_JPEGE_UnBind;
+    }
+
+    s32Ret = SAMPLE_COMM_VPSS_Bind_VENC(VpssGrp, VpssChn[1],VencChn[1]);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc bind Vpss failed for %#x!\n", s32Ret);
+        goto EXIT_VENC_JPEGE_STOP;
+    }
+
+    /******************************************
+     stream save process
+    ******************************************/
+    s32Ret = SAMPLE_COMM_VENC_StartGetStream(VencChn,s32ChnNum);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start Venc failed!\n");
+        goto EXIT_VENC_H265_UnBind;
+    }
+
+    /******************************************
+     stream venc process -- get jpeg stream, then save it to file.
+    ******************************************/
+    printf("press 'q' to exit snap!\nperess ENTER to capture one picture to file\n");
+    i = 0;
+    while ((ch = (char)getchar()) != 'q')
+    {
+        printf("press any key to snap one pic\n");
+        getchar();
+
+        s32Ret = SAMPLE_COMM_VENC_SnapProcess(VencChn[1], 1, HI_TRUE, HI_TRUE);
+        if (HI_SUCCESS != s32Ret)
+        {
+            printf("%s: sanp process failed!\n", __FUNCTION__);
+            break;
+        }
+        printf("snap %d success!\n", i);
+        i++;
+    }
+
+
+    printf("please press twice ENTER to exit this sample\n");
+    getchar();
+    getchar();
+
+    /******************************************
+     exit process
+    ******************************************/
+    SAMPLE_COMM_VENC_StopGetStream();
+
+EXIT_VENC_JPEGE_UnBind:
+    SAMPLE_COMM_VPSS_UnBind_VENC(VpssGrp,VpssChn[1],VencChn[1]);
+EXIT_VENC_JPEGE_STOP:
+    SAMPLE_COMM_VENC_Stop(VencChn[1]);
+//EXIT_VENC_H264_UnBind:
+//    SAMPLE_COMM_VPSS_UnBind_VENC(VpssGrp,VpssChn[1],VencChn[1]);
+//EXIT_VENC_H264_STOP:
+//    SAMPLE_COMM_VENC_Stop(VencChn[1]);
+EXIT_VENC_H265_UnBind:
+    SAMPLE_COMM_VPSS_UnBind_VENC(VpssGrp,VpssChn[0],VencChn[0]);
+EXIT_VENC_H265_STOP:
+    SAMPLE_COMM_VENC_Stop(VencChn[0]);
+EXIT_VI_VPSS_UNBIND:
+    SAMPLE_COMM_VI_UnBind_VPSS(ViPipe,ViChn,VpssGrp);
+EXIT_VPSS_STOP:
+    SAMPLE_COMM_VPSS_Stop(VpssGrp,abChnEnable);
+EXIT_VI_STOP:
+    SAMPLE_COMM_VI_StopVi(&stViConfig);
+    SAMPLE_COMM_SYS_Exit();
+
+    return s32Ret;
+}
+
+HI_S32 SAMPLE_VENC_H265_H264(void)
+{
+    HI_S32 i;
+    HI_S32 s32Ret;
+    SIZE_S          stSize[2];
+    PIC_SIZE_E      enSize[2]     = {PIC_720P, PIC_720P};
+
+    HI_S32          s32ChnNum     = 2;
+    VENC_CHN        VencChn[2]    = {0,1};
+    HI_U32          u32Profile[2] = {0,1};
+    PAYLOAD_TYPE_E  enPayLoad[2]  = {PT_H265, PT_H264};
+    VENC_GOP_MODE_E enGopMode;
+    VENC_GOP_ATTR_S stGopAttr;
+    SAMPLE_RC_E     enRcMode;
+
+    VI_DEV          ViDev        = 5;
+    VI_PIPE         ViPipe       = 0;
+    VI_CHN          ViChn        = 0;
+    SAMPLE_VI_CONFIG_S stViConfig;
+
+    VPSS_GRP        VpssGrp        = 0;
+    VPSS_CHN        VpssChn[2]     = {0,1};
+    HI_BOOL         abChnEnable[4] = {1,1,0,0};
+
+    HI_U32 u32SupplementConfig = HI_FALSE;
+
+    for(i=0; i<s32ChnNum; i++)
+    {
+        s32Ret = SAMPLE_COMM_SYS_GetPicSize(enSize[i], &stSize[i]);
+        if (HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("SAMPLE_COMM_SYS_GetPicSize failed!\n");
+            return s32Ret;
+        }
+    }
+
+    SAMPLE_COMM_VI_GetSensorInfo(&stViConfig);
+
+    if(SAMPLE_SNS_TYPE_BUTT == stViConfig.astViInfo[0].stSnsInfo.enSnsType)
+    {
+        SAMPLE_PRT("Not set SENSOR%d_TYPE !\n",0);
+        return HI_FAILURE;
+    }
+
+    s32Ret = SAMPLE_VENC_CheckSensor(stViConfig.astViInfo[0].stSnsInfo.enSnsType,stSize[0]);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("Check Sensor err!\n");
+        return HI_FAILURE;
+    }
+
+    stViConfig.s32WorkingViNum       = 1;
+    stViConfig.astViInfo[0].stDevInfo.ViDev     = ViDev;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[0] = ViPipe;
+    stViConfig.astViInfo[0].stChnInfo.ViChn     = ViChn;
+    stViConfig.astViInfo[0].stChnInfo.enDynamicRange = DYNAMIC_RANGE_SDR8;
+    stViConfig.astViInfo[0].stChnInfo.enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    s32Ret = SAMPLE_VENC_VI_Init(&stViConfig, HI_FALSE,u32SupplementConfig);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("Init VI err for %#x!\n", s32Ret);
+        return HI_FAILURE;
+    }
+
+    s32Ret = SAMPLE_VENC_VPSS_Init(VpssGrp,abChnEnable,DYNAMIC_RANGE_SDR8,PIXEL_FORMAT_YVU_SEMIPLANAR_420,stSize,stViConfig.astViInfo[0].stSnsInfo.enSnsType);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Init VPSS err for %#x!\n", s32Ret);
+        goto EXIT_VI_STOP;
+    }
+
+    s32Ret = SAMPLE_COMM_VI_Bind_VPSS(ViPipe, ViChn, VpssGrp);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("VI Bind VPSS err for %#x!\n", s32Ret);
+        goto EXIT_VPSS_STOP;
+    }
+
+   /******************************************
+     start stream venc
+    ******************************************/
+
+    enRcMode = SAMPLE_VENC_GetRcMode();
+
+    enGopMode = SAMPLE_VENC_GetGopMode();
+    s32Ret = SAMPLE_COMM_VENC_GetGopAttr(enGopMode,&stGopAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Get GopAttr for %#x!\n", s32Ret);
+        goto EXIT_VI_VPSS_UNBIND;
+    }
+
+   /***encode h.265 **/
+    s32Ret = SAMPLE_COMM_VENC_Start(VencChn[0], enPayLoad[0],enSize[0], enRcMode,u32Profile[0],&stGopAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Start failed for %#x!\n", s32Ret);
+        goto EXIT_VI_VPSS_UNBIND;
+    }
+
+    s32Ret = SAMPLE_COMM_VPSS_Bind_VENC(VpssGrp, VpssChn[0],VencChn[0]);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Get GopAttr failed for %#x!\n", s32Ret);
+        goto EXIT_VENC_H265_STOP;
+    }
+
+    /***encode h.264 **/
+    s32Ret = SAMPLE_COMM_VENC_Start(VencChn[1], enPayLoad[1], enSize[1], enRcMode,u32Profile[1],&stGopAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc Start failed for %#x!\n", s32Ret);
+        goto EXIT_VENC_H265_UnBind;
+    }
+
+    s32Ret = SAMPLE_COMM_VPSS_Bind_VENC(VpssGrp, VpssChn[1],VencChn[1]);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Venc bind Vpss failed for %#x!\n", s32Ret);
+        goto EXIT_VENC_H264_STOP;
+    }
+
+    /******************************************
+     stream save process
+    ******************************************/
+    s32Ret = SAMPLE_COMM_VENC_StartGetStream(VencChn,s32ChnNum);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start Venc failed!\n");
+        goto EXIT_VENC_H264_UnBind;
+    }
+
+    printf("please press twice ENTER to exit this sample\n");
+    getchar();
+    getchar();
+
+    /******************************************
+     exit process
+    ******************************************/
+    SAMPLE_COMM_VENC_StopGetStream();
+
+EXIT_VENC_H264_UnBind:
+    SAMPLE_COMM_VPSS_UnBind_VENC(VpssGrp,VpssChn[1],VencChn[1]);
+EXIT_VENC_H264_STOP:
+    SAMPLE_COMM_VENC_Stop(VencChn[1]);
+EXIT_VENC_H265_UnBind:
+    SAMPLE_COMM_VPSS_UnBind_VENC(VpssGrp,VpssChn[0],VencChn[0]);
+EXIT_VENC_H265_STOP:
+    SAMPLE_COMM_VENC_Stop(VencChn[0]);
+EXIT_VI_VPSS_UNBIND:
+    SAMPLE_COMM_VI_UnBind_VPSS(ViPipe,ViChn,VpssGrp);
+EXIT_VPSS_STOP:
+    SAMPLE_COMM_VPSS_Stop(VpssGrp,abChnEnable);
+EXIT_VI_STOP:
+    SAMPLE_COMM_VI_StopVi(&stViConfig);
+    SAMPLE_COMM_SYS_Exit();
+
+    return s32Ret;
+}
+
+
+
 /******************************************************************************
 * function    : main()
 * Description : video venc sample
@@ -1487,6 +1838,12 @@ EXIT_VI_STOP:
             break;
         case 5:
             s32Ret = SAMPLE_VENC_MJPEG_JPEG();
+            break;
+        case 6:
+            s32Ret = SAMPLE_VENC_H265_H264();
+            break;
+        case 7:
+            s32Ret = SAMPLE_VENC_H265_JPEG();
             break;
 
         default:

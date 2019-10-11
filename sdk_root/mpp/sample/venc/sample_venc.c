@@ -202,6 +202,104 @@ HI_S32 SAMPLE_VENC_GetFilePostfix(PAYLOAD_TYPE_E enPayload, char* szFilePostfix)
 
 
 /******************************************************************************
+* funciton : the process of physical address retrace
+******************************************************************************/
+HI_S32 SAMPLE_VENC_SaveStream_PhyAddr(MP4FileHandle pFd, VENC_STREAM_BUF_INFO_S *pstStreamBuf, VENC_STREAM_S* pstStream)
+{
+    HI_U32 i,j;
+    HI_U64 u64SrcPhyAddr;
+    HI_U32 u32Left;
+    HI_S32 s32Ret = 0;
+
+    for(i=0; i<pstStream->u32PackCount; i++)
+    {
+        for(j=0; j<MAX_TILE_NUM; j++)
+        {
+            if((pstStream->pstPack[i].u64PhyAddr > pstStreamBuf->u64PhyAddr[j])&&\
+                (pstStream->pstPack[i].u64PhyAddr <= pstStreamBuf->u64PhyAddr[j]+pstStreamBuf->u64BufSize[j]))
+                break;
+        }
+
+        if(pstStream->pstPack[i].u64PhyAddr + pstStream->pstPack[i].u32Len >=
+                pstStreamBuf->u64PhyAddr[j] + pstStreamBuf->u64BufSize[j])
+        {
+            if (pstStream->pstPack[i].u64PhyAddr + pstStream->pstPack[i].u32Offset >=
+                pstStreamBuf->u64PhyAddr[j] + pstStreamBuf->u64BufSize[j])
+            {
+                /* physical address retrace in offset segment */
+                u64SrcPhyAddr = pstStreamBuf->u64PhyAddr[j] +
+                                ((pstStream->pstPack[i].u64PhyAddr + pstStream->pstPack[i].u32Offset) -
+                                (pstStreamBuf->u64PhyAddr[j] + pstStreamBuf->u64BufSize[j]));
+
+//	                s32Ret = fwrite ((void *)u64SrcPhyAddr, pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset, 1, pFd);
+//	                if(s32Ret<0)
+//	                {
+//	                    SAMPLE_PRT("fwrite err %d\n", s32Ret);
+//	                    return s32Ret;
+//	                }
+                    //printf("opps!\n");
+                    WriteH264Data(pFd, (unsigned char*)u64SrcPhyAddr, pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset);
+            }
+            else
+            {
+                /* physical address retrace in data segment */
+                u32Left = (pstStreamBuf->u64PhyAddr[j] + pstStreamBuf->u64BufSize[j]) - pstStream->pstPack[i].u64PhyAddr;
+
+//	                s32Ret = fwrite((void *)(pstStream->pstPack[i].u64PhyAddr + pstStream->pstPack[i].u32Offset),
+//	                             u32Left - pstStream->pstPack[i].u32Offset, 1, pFd);
+//	                if(s32Ret<0)
+//	                {
+//	                    SAMPLE_PRT("fwrite err %d\n", s32Ret);
+//	                    return s32Ret;
+//	                }
+//	
+//	                s32Ret = fwrite((void *)pstStreamBuf->u64PhyAddr[j], pstStream->pstPack[i].u32Len - u32Left, 1, pFd);
+//	                if(s32Ret<0)
+//	                {
+//	                    SAMPLE_PRT("fwrite err %d\n", s32Ret);
+//	                    return s32Ret;
+//	                }
+                WriteH264Data(pFd, (unsigned char*)(pstStream->pstPack[i].u64PhyAddr + pstStream->pstPack[i].u32Offset), u32Left - pstStream->pstPack[i].u32Offset);
+                WriteH264Data(pFd, (unsigned char*)pstStreamBuf->u64PhyAddr[j], pstStream->pstPack[i].u32Len - u32Left);
+            }
+        }
+        else
+        {
+//	            /* physical address retrace does not happen */
+//	            s32Ret = fwrite ((void *)(pstStream->pstPack[i].u64PhyAddr + pstStream->pstPack[i].u32Offset),
+//	                          pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset, 1, pFd);
+//	            if(s32Ret<0)
+//	            {
+//	                SAMPLE_PRT("fwrite err %d\n", s32Ret);
+//	                return s32Ret;
+//	            }
+            WriteH264Data(pFd, (unsigned char*)(pstStream->pstPack[i].u64PhyAddr + pstStream->pstPack[i].u32Offset), pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset);
+        }
+//	            fflush(pFd);
+    }
+    return HI_SUCCESS;
+}
+
+/******************************************************************************
+* funciton : save stream
+******************************************************************************/
+HI_S32 SAMPLE_VENC_SaveStream(MP4FileHandle pFd, VENC_STREAM_S* pstStream)
+{
+    HI_S32 i;
+
+    for (i = 0; i < pstStream->u32PackCount; i++)
+    {
+        //fwrite(pstStream->pstPack[i].pu8Addr + pstStream->pstPack[i].u32Offset,
+        //       pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset, 1, pFd);
+        WriteH264Data(pFd, (unsigned char*)(pstStream->pstPack[i].pu8Addr + pstStream->pstPack[i].u32Offset), pstStream->pstPack[i].u32Len - pstStream->pstPack[i].u32Offset);
+        //fflush(pFd);
+    }
+
+    return HI_SUCCESS;
+}
+
+
+/******************************************************************************
 * funciton : get stream from each channels and save them
 ******************************************************************************/
 HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
@@ -388,6 +486,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
 
 #ifndef __HuaweiLite__
                     s32Ret = SAMPLE_COMM_VENC_SaveStream(pFile[i], &stStream);
+                    s32Ret = SAMPLE_VENC_SaveStream(hMP4File[i], &stStream);
 #else
                     s32Ret = SAMPLE_COMM_VENC_SaveStream_PhyAddr(pFile[i], &stStreamBufInfo[i], &stStream);
 #endif

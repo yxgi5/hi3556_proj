@@ -48,7 +48,7 @@ int WriteH264Data(MP4FileHandle hMp4File,const unsigned char* pData,int size)
     int pos = 0, len = 0;  
     while ((len = ReadOneNaluFromBuf(pData,size,pos,&nalu))!=0)  //返回一个NALU的完整大小（含NAL头）
     {  
-		printf("nalu.type = %d\n",nalu.type);
+		//printf("nalu.type = %d\n",nalu.type);
         if(nalu.type == 0x07) // sps  
         {  
 			//printf("NALU type is sps\n");

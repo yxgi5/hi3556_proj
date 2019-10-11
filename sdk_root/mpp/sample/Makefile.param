@@ -79,6 +79,7 @@ INC_FLAGS += -I$(SDK_PATH)/$(EXTDRV)/motionsensor/motionsensor_mng
 INC_FLAGS += -I$(SDK_PATH)/$(EXTDRV)/motionsensor/motionsensor_chip/pub
 	
 ISP_VERSION := ISP_V2
+#CFLAGS += -Wall -g $(INC_FLAGS) -D$(HIARCH) -D$(HI_FPGA) -lpthread -lm -ldl -D$(ISP_VERSION)  -L./common/lib -lmp4v2
 CFLAGS += -Wall -g $(INC_FLAGS) -D$(HIARCH) -D$(HI_FPGA) -lpthread -lm -ldl -D$(ISP_VERSION)
 CFLAGS += -lstdc++
 CFLAGS += -DSENSOR0_TYPE=$(SENSOR0_TYPE)

@@ -33,6 +33,8 @@ extern "C" {
 #include <math.h>
 #include <sys/prctl.h>
 #include "sample_comm.h"
+#include <mp4v2/mp4v2.h>
+#include "MP4Encoder.h"
 
 static pthread_t gs_VencPid;
 static SAMPLE_VENC_GETSTREAM_PARA_S gs_stPara;
@@ -171,8 +173,8 @@ HI_S32 SAMPLE_VENC_GetFilePostfix(PAYLOAD_TYPE_E enPayload, char* szFilePostfix)
 {
     if (PT_H264 == enPayload)
     {
-        //strcpy(szFilePostfix, ".h264");
-        strcpy(szFilePostfix, ".mp4");
+        strcpy(szFilePostfix, ".h264");
+        //strcpy(szFilePostfix, ".mp4");
     }
     else if (PT_H265 == enPayload)
     {
@@ -214,7 +216,9 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
     HI_U32 u32PictureCnt[VENC_MAX_CHN_NUM]={0};
     HI_S32 VencFd[VENC_MAX_CHN_NUM];
     HI_CHAR aszFileName[VENC_MAX_CHN_NUM][64];
+	HI_CHAR Mp4FileName[VENC_MAX_CHN_NUM][64];
     FILE* pFile[VENC_MAX_CHN_NUM];
+    MP4FileHandle hMP4File[VENC_MAX_CHN_NUM];
     char szFilePostfix[10];
     VENC_CHN_STATUS_S stStat;
     VENC_STREAM_S stStream;
@@ -223,7 +227,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
     PAYLOAD_TYPE_E enPayLoadType[VENC_MAX_CHN_NUM];
     VENC_STREAM_BUF_INFO_S stStreamBufInfo[VENC_MAX_CHN_NUM];
 
-    prctl(PR_SET_NAME, "GetVencStream", 0,0,0);
+    prctl(PR_SET_NAME, "GetVencStream1", 0,0,0);
 
     pstPara = (SAMPLE_VENC_GETSTREAM_PARA_S*)p;
     s32ChnTotal = pstPara->s32Cnt;
@@ -258,7 +262,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
         if(PT_JPEG != enPayLoadType[i])
         {
             snprintf(aszFileName[i],32, "stream_chn%d%s", i, szFilePostfix);
-
+			snprintf(Mp4FileName[i],32, "stream_chn%d.mp4", i);
             pFile[i] = fopen(aszFileName[i], "wb");
             if (!pFile[i])
             {
@@ -266,6 +270,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
                            aszFileName[i]);
                 return NULL;
             }
+			hMP4File[i] = CreateMP4File(Mp4FileName[i],1280,720,9000,25); 
         }
         /* Set Venc Fd. */
         VencFd[i] = HI_MPI_VENC_GetFd(i);
@@ -427,6 +432,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
         if(PT_JPEG != enPayLoadType[i])
         {
             fclose(pFile[i]);
+			CloseMP4File(hMP4File);
         }
     }
     return NULL;

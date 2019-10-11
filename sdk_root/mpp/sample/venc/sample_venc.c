@@ -173,8 +173,8 @@ HI_S32 SAMPLE_VENC_GetFilePostfix(PAYLOAD_TYPE_E enPayload, char* szFilePostfix)
 {
     if (PT_H264 == enPayload)
     {
-        strcpy(szFilePostfix, ".h264");
-        //strcpy(szFilePostfix, ".mp4");
+        //strcpy(szFilePostfix, ".h264");
+        strcpy(szFilePostfix, ".mp4");
     }
     else if (PT_H265 == enPayload)
     {
@@ -314,7 +314,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
     HI_U32 u32PictureCnt[VENC_MAX_CHN_NUM]={0};
     HI_S32 VencFd[VENC_MAX_CHN_NUM];
     HI_CHAR aszFileName[VENC_MAX_CHN_NUM][64];
-	HI_CHAR Mp4FileName[VENC_MAX_CHN_NUM][64];
+	//HI_CHAR Mp4FileName[VENC_MAX_CHN_NUM][64];
     FILE* pFile[VENC_MAX_CHN_NUM];
     MP4FileHandle hMP4File[VENC_MAX_CHN_NUM];
     char szFilePostfix[10];
@@ -360,15 +360,22 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
         if(PT_JPEG != enPayLoadType[i])
         {
             snprintf(aszFileName[i],32, "stream_chn%d%s", i, szFilePostfix);
-			snprintf(Mp4FileName[i],32, "stream_chn%d.mp4", i);
-            pFile[i] = fopen(aszFileName[i], "wb");
-            if (!pFile[i])
+			//snprintf(Mp4FileName[i],32, "stream_chn%d.mp4", i);
+			if(PT_H264 == enPayLoadType[i])
             {
-                SAMPLE_PRT("open file[%s] failed!\n",
-                           aszFileName[i]);
-                return NULL;
+                hMP4File[i] = CreateMP4File(aszFileName[i],1280,720,9000,25); 
             }
-			hMP4File[i] = CreateMP4File(Mp4FileName[i],1280,720,9000,25); 
+            else
+            {
+                pFile[i] = fopen(aszFileName[i], "wb");
+                if (!pFile[i])
+                {
+                    SAMPLE_PRT("open file[%s] failed!\n",
+                               aszFileName[i]);
+                    return NULL;
+                }
+            }
+            //hMP4File[i] = CreateMP4File(aszFileName[i],1280,720,9000,25); 
         }
         /* Set Venc Fd. */
         VencFd[i] = HI_MPI_VENC_GetFd(i);
@@ -486,7 +493,15 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
 
 #ifndef __HuaweiLite__
                     //s32Ret = SAMPLE_COMM_VENC_SaveStream(pFile[i], &stStream);
-                    s32Ret = SAMPLE_VENC_SaveStream(hMP4File[i], &stStream);
+                    //s32Ret = SAMPLE_VENC_SaveStream(hMP4File[i], &stStream);
+                    if(PT_H264 == enPayLoadType[i])
+                    {
+                        s32Ret = SAMPLE_VENC_SaveStream(hMP4File[i], &stStream);
+                    }
+                    else
+                    {
+                        s32Ret = SAMPLE_COMM_VENC_SaveStream(pFile[i], &stStream);
+                    }
 #else
                     s32Ret = SAMPLE_COMM_VENC_SaveStream_PhyAddr(pFile[i], &stStreamBufInfo[i], &stStream);
 #endif
@@ -530,8 +545,16 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
     {
         if(PT_JPEG != enPayLoadType[i])
         {
-            fclose(pFile[i]);
-			CloseMP4File(hMP4File[i]);
+            //fclose(pFile[i]);
+			//CloseMP4File(hMP4File[i]);
+			if(PT_H264 == enPayLoadType[i])
+            {
+                CloseMP4File(hMP4File[i]);
+            }      
+            else
+            {
+                fclose(pFile[i]);
+            }
         }
     }
     return NULL;

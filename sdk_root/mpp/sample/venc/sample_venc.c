@@ -485,7 +485,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
                     }
 
 #ifndef __HuaweiLite__
-                    s32Ret = SAMPLE_COMM_VENC_SaveStream(pFile[i], &stStream);
+                    //s32Ret = SAMPLE_COMM_VENC_SaveStream(pFile[i], &stStream);
                     s32Ret = SAMPLE_VENC_SaveStream(hMP4File[i], &stStream);
 #else
                     s32Ret = SAMPLE_COMM_VENC_SaveStream_PhyAddr(pFile[i], &stStreamBufInfo[i], &stStream);
@@ -531,7 +531,7 @@ HI_VOID* SAMPLE_VENC_GetVencStreamProc(HI_VOID* p)
         if(PT_JPEG != enPayLoadType[i])
         {
             fclose(pFile[i]);
-			CloseMP4File(hMP4File);
+			CloseMP4File(hMP4File[i]);
         }
     }
     return NULL;
@@ -554,6 +554,18 @@ HI_S32 SAMPLE_VENC_StartGetStream(VENC_CHN VeChn[],HI_S32 s32Cnt)
     return pthread_create(&gs_VencPid, 0, SAMPLE_VENC_GetVencStreamProc, (HI_VOID*)&gs_stPara);
 }
 
+/******************************************************************************
+* funciton : stop get venc stream process.
+******************************************************************************/
+HI_S32 SAMPLE_VENC_StopGetStream(void)
+{
+    if (HI_TRUE == gs_stPara.bThreadStart)
+    {
+        gs_stPara.bThreadStart = HI_FALSE;
+        pthread_join(gs_VencPid, 0);
+    }
+    return HI_SUCCESS;
+}
 
 HI_S32 SAMPLE_VENC_SYS_Init(HI_U32 u32SupplementConfig,SAMPLE_SNS_TYPE_E  enSnsType)
 {
@@ -2232,7 +2244,7 @@ HI_S32 SAMPLE_VENC_H264_JPEG(void)
     /******************************************
      exit process
     ******************************************/
-    SAMPLE_COMM_VENC_StopGetStream();
+    SAMPLE_VENC_StopGetStream();
 
 EXIT4:
     SAMPLE_COMM_VPSS_UnBind_VO(VpssGrp, VpssChn[0], stVoConfig.VoDev, VoChn);

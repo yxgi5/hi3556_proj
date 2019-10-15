@@ -2,11 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 #include <sys/time.h>
+#include <sys/select.h>
+#include <sys/prctl.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <pthread.h>
@@ -15,6 +20,9 @@
 #include <signal.h>
 
 #include "sample_comm.h"
+#include <mp4v2/mp4v2.h>
+#include "mp4unpack.h"
+
 
 #define SAMPLE_STREAM_PATH "./source_file"
 
@@ -56,6 +64,275 @@ HI_VOID SAMPLE_VDEC_Usage(char *sPrgNm)
 
 VO_INTF_SYNC_E g_enIntfSync = VO_OUTPUT_3840x2160_30;
 
+
+HI_VOID * SAMPLE_VDEC_SendStream(HI_VOID *pArgs)
+{
+    VDEC_THREAD_PARAM_S *pstVdecThreadParam =(VDEC_THREAD_PARAM_S *)pArgs;
+    HI_BOOL bEndOfStream = HI_FALSE;
+    HI_S32 s32UsedBytes = 0, s32ReadLen = 0;
+    FILE *fpStrm=NULL;
+    HI_U8 *pu8Buf = NULL;
+    VDEC_STREAM_S stStream;
+    HI_BOOL bFindStart, bFindEnd;
+    HI_U64 u64PTS = 0;
+    HI_U32 u32Len, u32Start;
+    HI_S32 s32Ret,  i;
+    HI_CHAR cStreamFile[256];
+
+    prctl(PR_SET_NAME, "VideoSendStream1", 0,0,0);
+
+    snprintf(cStreamFile, sizeof(cStreamFile), "%s/%s", pstVdecThreadParam->cFilePath,pstVdecThreadParam->cFileName);
+    if(cStreamFile != 0)
+    {
+        fpStrm = fopen(cStreamFile, "rb");
+        if(fpStrm == NULL)
+        {
+            SAMPLE_PRT("chn %d can't open file %s in send stream thread!\n", pstVdecThreadParam->s32ChnId, cStreamFile);
+            return (HI_VOID *)(HI_FAILURE);
+        }
+    }
+    printf("\n \033[0;36m chn %d, stream file:%s, userbufsize: %d \033[0;39m\n", pstVdecThreadParam->s32ChnId,
+        pstVdecThreadParam->cFileName, pstVdecThreadParam->s32MinBufSize);
+
+    pu8Buf = malloc(pstVdecThreadParam->s32MinBufSize);
+    if(pu8Buf == NULL)
+    {
+        SAMPLE_PRT("chn %d can't alloc %d in send stream thread!\n", pstVdecThreadParam->s32ChnId, pstVdecThreadParam->s32MinBufSize);
+        fclose(fpStrm);
+        return (HI_VOID *)(HI_FAILURE);
+    }
+    fflush(stdout);
+
+    u64PTS = pstVdecThreadParam->u64PtsInit;
+    while (1)
+    {
+        if (pstVdecThreadParam->eThreadCtrl == THREAD_CTRL_STOP)
+        {
+            break;
+        }
+        else if (pstVdecThreadParam->eThreadCtrl == THREAD_CTRL_PAUSE)
+        {
+            sleep(1);
+            continue;
+        }
+
+        bEndOfStream = HI_FALSE;
+        bFindStart   = HI_FALSE;
+        bFindEnd     = HI_FALSE;
+        u32Start     = 0;
+        fseek(fpStrm, s32UsedBytes, SEEK_SET);
+        //TODO: modify here
+        s32ReadLen = fread(pu8Buf, 1, pstVdecThreadParam->s32MinBufSize, fpStrm);
+
+        
+        if (s32ReadLen == 0)
+        {
+            if (pstVdecThreadParam->bCircleSend == HI_TRUE)
+            {
+                memset(&stStream, 0, sizeof(VDEC_STREAM_S) );
+                stStream.bEndOfStream = HI_TRUE;
+                HI_MPI_VDEC_SendStream(pstVdecThreadParam->s32ChnId, &stStream, -1);
+
+                s32UsedBytes = 0;
+                fseek(fpStrm, 0, SEEK_SET);
+                s32ReadLen = fread(pu8Buf, 1, pstVdecThreadParam->s32MinBufSize, fpStrm);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (pstVdecThreadParam->s32StreamMode==VIDEO_MODE_FRAME && pstVdecThreadParam->enType == PT_H264)
+        {
+            for (i=0; i<s32ReadLen-8; i++)
+            {
+                int tmp = pu8Buf[i+3] & 0x1F;
+                if (  pu8Buf[i    ] == 0 && pu8Buf[i+1] == 0 && pu8Buf[i+2] == 1 &&
+                       (
+                           ((tmp == 0x5 || tmp == 0x1) && ((pu8Buf[i+4]&0x80) == 0x80)) ||
+                           (tmp == 20 && (pu8Buf[i+7]&0x80) == 0x80)
+                        )
+                   )
+                {
+                    bFindStart = HI_TRUE;
+                    i += 8;
+                    break;
+                }
+            }
+
+            for (; i<s32ReadLen-8; i++)
+            {
+                int tmp = pu8Buf[i+3] & 0x1F;
+                if (  pu8Buf[i    ] == 0 && pu8Buf[i+1] == 0 && pu8Buf[i+2] == 1 &&
+                            (
+                                  tmp == 15 || tmp == 7 || tmp == 8 || tmp == 6 ||
+                                  ((tmp == 5 || tmp == 1) && ((pu8Buf[i+4]&0x80) == 0x80)) ||
+                                  (tmp == 20 && (pu8Buf[i+7]&0x80) == 0x80)
+                              )
+                   )
+                {
+                    bFindEnd = HI_TRUE;
+                    break;
+                }
+            }
+
+            if(i>0)s32ReadLen = i;
+            if (bFindStart == HI_FALSE)
+            {
+                SAMPLE_PRT("chn %d can not find H264 start code!s32ReadLen %d, s32UsedBytes %d.!\n",
+                    pstVdecThreadParam->s32ChnId, s32ReadLen, s32UsedBytes);
+            }
+            if (bFindEnd == HI_FALSE)
+            {
+                s32ReadLen = i+8;
+            }
+
+        }
+        else if (pstVdecThreadParam->s32StreamMode==VIDEO_MODE_FRAME
+            && pstVdecThreadParam->enType == PT_H265)
+        {
+            HI_BOOL  bNewPic = HI_FALSE;
+            for (i=0; i<s32ReadLen-6; i++)
+            {
+                HI_U32 tmp = (pu8Buf[i+3]&0x7E)>>1;
+                bNewPic = ( pu8Buf[i+0] == 0 && pu8Buf[i+1] == 0 && pu8Buf[i+2] == 1
+                            && (tmp >= 0 && tmp <= 21) && ((pu8Buf[i+5]&0x80) == 0x80) );
+
+                if (bNewPic)
+                {
+                    bFindStart = HI_TRUE;
+                    i += 6;
+                    break;
+                }
+            }
+
+            for (; i<s32ReadLen-6; i++)
+            {
+                HI_U32 tmp = (pu8Buf[i+3]&0x7E)>>1;
+                bNewPic = (pu8Buf[i+0] == 0 && pu8Buf[i+1] == 0 && pu8Buf[i+2] == 1
+                            &&( tmp == 32 || tmp == 33 || tmp == 34 || tmp == 39 || tmp == 40 || ((tmp >= 0 && tmp <= 21) && (pu8Buf[i+5]&0x80) == 0x80) )
+                             );
+
+                if (bNewPic)
+                {
+                    bFindEnd = HI_TRUE;
+                    break;
+                }
+            }
+            if(i>0)s32ReadLen = i;
+
+            if (bFindStart == HI_FALSE)
+            {
+                SAMPLE_PRT("chn %d can not find H265 start code!s32ReadLen %d, s32UsedBytes %d.!\n",
+                    pstVdecThreadParam->s32ChnId, s32ReadLen, s32UsedBytes);
+            }
+            if (bFindEnd == HI_FALSE)
+            {
+                s32ReadLen = i+6;
+            }
+
+        }
+        else if (pstVdecThreadParam->enType == PT_MJPEG || pstVdecThreadParam->enType == PT_JPEG)
+        {
+            for (i=0; i<s32ReadLen-1; i++)
+            {
+                if (pu8Buf[i] == 0xFF && pu8Buf[i+1] == 0xD8)
+                {
+                    u32Start = i;
+                    bFindStart = HI_TRUE;
+                    i = i + 2;
+                    break;
+                }
+            }
+
+            for (; i<s32ReadLen-3; i++)
+            {
+                if ((pu8Buf[i] == 0xFF) && (pu8Buf[i+1]& 0xF0) == 0xE0)
+                {
+                     u32Len = (pu8Buf[i+2]<<8) + pu8Buf[i+3];
+                     i += 1 + u32Len;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            for (; i<s32ReadLen-1; i++)
+            {
+                if (pu8Buf[i] == 0xFF && pu8Buf[i+1] == 0xD9)
+                {
+                    bFindEnd = HI_TRUE;
+                    break;
+                }
+            }
+            s32ReadLen = i+2;
+
+            if (bFindStart == HI_FALSE)
+            {
+                SAMPLE_PRT("chn %d can not find JPEG start code!s32ReadLen %d, s32UsedBytes %d.!\n",
+                    pstVdecThreadParam->s32ChnId, s32ReadLen, s32UsedBytes);
+            }
+        }
+        else
+        {
+            if((s32ReadLen != 0) && (s32ReadLen < pstVdecThreadParam->s32MinBufSize))
+            {
+                bEndOfStream = HI_TRUE;
+            }
+        }
+
+        stStream.u64PTS       = u64PTS;
+        stStream.pu8Addr      = pu8Buf + u32Start;
+        stStream.u32Len       = s32ReadLen;
+        stStream.bEndOfFrame  = (pstVdecThreadParam->s32StreamMode==VIDEO_MODE_FRAME)? HI_TRUE: HI_FALSE;
+        stStream.bEndOfStream = bEndOfStream;
+        stStream.bDisplay     = 1;
+
+SendAgain:
+        s32Ret=HI_MPI_VDEC_SendStream(pstVdecThreadParam->s32ChnId, &stStream, pstVdecThreadParam->s32MilliSec);
+        if( (HI_SUCCESS != s32Ret) && (THREAD_CTRL_START == pstVdecThreadParam->eThreadCtrl) )
+        {
+            usleep(pstVdecThreadParam->s32IntervalTime);
+            goto SendAgain;
+        }
+        else
+        {
+            bEndOfStream = HI_FALSE;
+            s32UsedBytes = s32UsedBytes +s32ReadLen + u32Start;
+            u64PTS += pstVdecThreadParam->u64PtsIncrease;
+        }
+        usleep(pstVdecThreadParam->s32IntervalTime);
+    }
+
+    /* send the flag of stream end */
+    memset(&stStream, 0, sizeof(VDEC_STREAM_S) );
+    stStream.bEndOfStream = HI_TRUE;
+    HI_MPI_VDEC_SendStream(pstVdecThreadParam->s32ChnId, &stStream, -1);
+
+    printf("\033[0;35m chn %d send steam thread return ...  \033[0;39m\n", pstVdecThreadParam->s32ChnId);
+    fflush(stdout);
+    if (pu8Buf != HI_NULL)
+    {
+        free(pu8Buf);
+    }
+    fclose(fpStrm);
+
+    return (HI_VOID *)HI_SUCCESS;
+}
+
+
+HI_VOID SAMPLE_VDEC_StartSendStream(HI_S32 s32ChnNum, VDEC_THREAD_PARAM_S *pstVdecSend, pthread_t *pVdecThread)
+{
+    HI_S32  i;
+
+    for(i=0; i<s32ChnNum; i++)
+    {
+        pVdecThread[i] = 0;
+        pthread_create(&pVdecThread[i], 0, SAMPLE_VDEC_SendStream, (HI_VOID *)&pstVdecSend[i]);
+    }
+}
 
 HI_S32 SAMPLE_H265_VDEC_VPSS_VO(HI_VOID)
 {
@@ -1021,7 +1298,7 @@ HI_S32 SAMPLE_MP4AVC_VDEC_VPSS_VO(HI_VOID)
     *************************************************/
     for(i=0; i<u32VdecChnNum; i++)
     {
-        snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "3840x2160_8bit.h264");
+        snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "720p_8bit.mp4");
         snprintf(stVdecSend[i].cFilePath, sizeof(stVdecSend[i].cFilePath), "%s", SAMPLE_STREAM_PATH);
         stVdecSend[i].enType          = astSampleVdec[i].enType;
         stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;
@@ -1034,7 +1311,7 @@ HI_S32 SAMPLE_MP4AVC_VDEC_VPSS_VO(HI_VOID)
         stVdecSend[i].s32MilliSec     = 0;
         stVdecSend[i].s32MinBufSize   = (astSampleVdec[i].u32Width * astSampleVdec[i].u32Height * 3)>>1;
     }
-    SAMPLE_COMM_VDEC_StartSendStream(u32VdecChnNum, &stVdecSend[0], &VdecThread[0]);
+    SAMPLE_VDEC_StartSendStream(u32VdecChnNum, &stVdecSend[0], &VdecThread[0]);
 
     SAMPLE_COMM_VDEC_CmdCtrl(u32VdecChnNum, &stVdecSend[0], &VdecThread[0]);
 

@@ -291,9 +291,9 @@ export CONFIG_HISYSLINK=y
 #
 # Debug Config
 #
-export CONFIG_HI_GDB_NO=n
+export CONFIG_HI_GDB_NO=y
 # CONFIG_HI_GDB_YES is not set
-export CONFIG_HI_GDB=y
+export CONFIG_HI_GDB=n
 export CONFIG_HI_LOG_TRACE_SUPPORT=y
 export CONFIG_HI_LOG_TRACE_ALL=y
 # CONFIG_HI_LOG_TRACE_ERR is not set

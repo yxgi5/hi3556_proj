@@ -199,7 +199,7 @@ endif
 
 
 # common CFLAGS
-LIBS_CFLAGS    += -fno-aggressive-loop-optimizations -ldl -ffunction-sections -fdata-sections -O0
+LIBS_CFLAGS    += -fno-aggressive-loop-optimizations -ldl -ffunction-sections -fdata-sections -O2
 LIBS_LD_CFLAGS += -fno-aggressive-loop-optimizations
 
 # secure CFLAGS

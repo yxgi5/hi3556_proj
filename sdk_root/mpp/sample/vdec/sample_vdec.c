@@ -1061,7 +1061,7 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO(HI_VOID)
         stVdecSend[i].enType          = astSampleVdec[i].enType;
         stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;
         stVdecSend[i].s32ChnId        = i;
-        stVdecSend[i].s32IntervalTime = 1000;
+        stVdecSend[i].s32IntervalTime = 30000;
         stVdecSend[i].u64PtsInit      = 0;
         stVdecSend[i].u64PtsIncrease  = 0;
         stVdecSend[i].eThreadCtrl     = THREAD_CTRL_START;
@@ -1311,7 +1311,7 @@ HI_S32 SAMPLE_MP4AVC_VDEC_VPSS_VO(HI_VOID)
         stVdecSend[i].enType          = astSampleVdec[i].enType;
         stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;
         stVdecSend[i].s32ChnId        = i;
-        stVdecSend[i].s32IntervalTime = 1000;
+        stVdecSend[i].s32IntervalTime = 30000;
         stVdecSend[i].u64PtsInit      = 0;
         stVdecSend[i].u64PtsIncrease  = 0;
         stVdecSend[i].eThreadCtrl     = THREAD_CTRL_START;

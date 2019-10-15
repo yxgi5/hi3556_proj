@@ -630,6 +630,13 @@ devmem 0x12010038 w 0x12000000
         }
         #endif
     }
+
+//	    s32Ret = HI_MPI_VO_SetDevFrameRate(VoDev, 25);
+//	    if (s32Ret != HI_SUCCESS)
+//	    {
+//	        SAMPLE_PRT("Set user interface Framerate failed with %#x.\n",s32Ret);
+//	        return HI_FAILURE;
+//	    }
     s32Ret = HI_MPI_VO_Enable(VoDev);
     if (s32Ret != HI_SUCCESS)
     {

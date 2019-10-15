@@ -1298,7 +1298,7 @@ HI_S32 SAMPLE_MP4AVC_VDEC_VPSS_VO(HI_VOID)
     *************************************************/
     for(i=0; i<u32VdecChnNum; i++)
     {
-        snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "720p_8bit.mp4");
+        snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "720p_8bit.h264");
         snprintf(stVdecSend[i].cFilePath, sizeof(stVdecSend[i].cFilePath), "%s", SAMPLE_STREAM_PATH);
         stVdecSend[i].enType          = astSampleVdec[i].enType;
         stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;

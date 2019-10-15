@@ -964,6 +964,8 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO(HI_VOID)
     stVpssGrpAttr.u32MaxH = 2160;
     stVpssGrpAttr.stFrameRate.s32SrcFrameRate = -1;
     stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
+    //stVpssGrpAttr.stFrameRate.s32SrcFrameRate = 30;
+    //stVpssGrpAttr.stFrameRate.s32DstFrameRate = 60;
     stVpssGrpAttr.enDynamicRange = DYNAMIC_RANGE_SDR8;
     stVpssGrpAttr.enPixelFormat  = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
     stVpssGrpAttr.bNrEn   = HI_FALSE;
@@ -978,6 +980,8 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO(HI_VOID)
     astVpssChnAttr[0].enPixelFormat               = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
     astVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
     astVpssChnAttr[0].stFrameRate.s32DstFrameRate = -1;
+    //astVpssChnAttr[0].stFrameRate.s32SrcFrameRate = 30;
+    //astVpssChnAttr[0].stFrameRate.s32DstFrameRate = 60;
     astVpssChnAttr[0].u32Depth                    = 0;
     astVpssChnAttr[0].bMirror                     = HI_FALSE;
     astVpssChnAttr[0].bFlip                       = HI_FALSE;
@@ -1210,6 +1214,8 @@ HI_S32 SAMPLE_MP4AVC_VDEC_VPSS_VO(HI_VOID)
     stVpssGrpAttr.u32MaxH = 2160;
     stVpssGrpAttr.stFrameRate.s32SrcFrameRate = -1;
     stVpssGrpAttr.stFrameRate.s32DstFrameRate = -1;
+    //stVpssGrpAttr.stFrameRate.s32SrcFrameRate = 30;
+    //stVpssGrpAttr.stFrameRate.s32DstFrameRate = 60;
     stVpssGrpAttr.enDynamicRange = DYNAMIC_RANGE_SDR8;
     stVpssGrpAttr.enPixelFormat  = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
     stVpssGrpAttr.bNrEn   = HI_FALSE;
@@ -1224,6 +1230,8 @@ HI_S32 SAMPLE_MP4AVC_VDEC_VPSS_VO(HI_VOID)
     astVpssChnAttr[0].enPixelFormat               = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
     astVpssChnAttr[0].stFrameRate.s32SrcFrameRate = -1;
     astVpssChnAttr[0].stFrameRate.s32DstFrameRate = -1;
+    //astVpssChnAttr[0].stFrameRate.s32SrcFrameRate = 30;
+    //astVpssChnAttr[0].stFrameRate.s32DstFrameRate = 60;
     astVpssChnAttr[0].u32Depth                    = 0;
     astVpssChnAttr[0].bMirror                     = HI_FALSE;
     astVpssChnAttr[0].bFlip                       = HI_FALSE;

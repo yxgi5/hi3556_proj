@@ -151,7 +151,7 @@ int ReadOneNaluFromBuf(const unsigned char *buffer,unsigned int nBufferSize,unsi
     return 0;
 }
 
-int getH264Stream(MP4FileHandle hMp4File, unsigned char* pData, int * pSize, int * pquit)
+int getH264Stream(MP4FileHandle hMp4File, unsigned char* pData, int * pSize)
 {
     if(!hMp4File) return -1;
     unsigned char *Data = NULL;
@@ -200,7 +200,7 @@ int getH264Stream(MP4FileHandle hMp4File, unsigned char* pData, int * pSize, int
         }
         else if(Data && nSize > 4)
         {
-            printf("quit2=%d\n",*pquit);
+            //printf("quit2=%d\n",*pquit);
             printf("nReadIndex=%d,oFrameCount=%d\n",nReadIndex,oFrameCount);
             
             Data[0] = 0x00;
@@ -217,13 +217,8 @@ int getH264Stream(MP4FileHandle hMp4File, unsigned char* pData, int * pSize, int
         nReadIndex++;
         if(nReadIndex==oFrameCount+1)
         {    
-            *pquit=1;
-            printf("quit1=%d\n",*pquit);
+            nReadIndex=0;
         }
-    }
-    else
-    {
-        *pquit=1;
     }
     
     return 0;

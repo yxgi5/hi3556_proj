@@ -26,6 +26,8 @@
 
 #define SAMPLE_STREAM_PATH "./source_file"
 
+MP4FileHandle hMp4File;
+
 #ifndef __HuaweiLite__
 HI_VOID SAMPLE_VDEC_HandleSig(HI_S32 signo)
 {
@@ -84,12 +86,14 @@ HI_VOID * SAMPLE_VDEC_SendStream(HI_VOID *pArgs)
     snprintf(cStreamFile, sizeof(cStreamFile), "%s/%s", pstVdecThreadParam->cFilePath,pstVdecThreadParam->cFileName);
     if(cStreamFile != 0)
     {
-        fpStrm = fopen(cStreamFile, "rb");
-        if(fpStrm == NULL)
+        //fpStrm = fopen(cStreamFile, "rb");
+        hMp4File=openMp4File(cStreamFile);//
+        if(hMp4File == NULL)
         {
             SAMPLE_PRT("chn %d can't open file %s in send stream thread!\n", pstVdecThreadParam->s32ChnId, cStreamFile);
             return (HI_VOID *)(HI_FAILURE);
         }
+        analysisMp4File(hMp4File);//
     }
     printf("\n \033[0;36m chn %d, stream file:%s, userbufsize: %d \033[0;39m\n", pstVdecThreadParam->s32ChnId,
         pstVdecThreadParam->cFileName, pstVdecThreadParam->s32MinBufSize);
@@ -98,7 +102,8 @@ HI_VOID * SAMPLE_VDEC_SendStream(HI_VOID *pArgs)
     if(pu8Buf == NULL)
     {
         SAMPLE_PRT("chn %d can't alloc %d in send stream thread!\n", pstVdecThreadParam->s32ChnId, pstVdecThreadParam->s32MinBufSize);
-        fclose(fpStrm);
+        //fclose(fpStrm);
+        closeMp4File(hMp4File);//
         return (HI_VOID *)(HI_FAILURE);
     }
     fflush(stdout);
@@ -120,11 +125,11 @@ HI_VOID * SAMPLE_VDEC_SendStream(HI_VOID *pArgs)
         bFindStart   = HI_FALSE;
         bFindEnd     = HI_FALSE;
         u32Start     = 0;
-        fseek(fpStrm, s32UsedBytes, SEEK_SET);
+        //fseek(fpStrm, s32UsedBytes, SEEK_SET);
         //TODO: modify here
-        s32ReadLen = fread(pu8Buf, 1, pstVdecThreadParam->s32MinBufSize, fpStrm);
+        //s32ReadLen = fread(pu8Buf, 1, pstVdecThreadParam->s32MinBufSize, fpStrm);
 
-        
+        getH264Stream(hMp4File,pu8Buf,&s32ReadLen);
         if (s32ReadLen == 0)
         {
             if (pstVdecThreadParam->bCircleSend == HI_TRUE)
@@ -134,8 +139,8 @@ HI_VOID * SAMPLE_VDEC_SendStream(HI_VOID *pArgs)
                 HI_MPI_VDEC_SendStream(pstVdecThreadParam->s32ChnId, &stStream, -1);
 
                 s32UsedBytes = 0;
-                fseek(fpStrm, 0, SEEK_SET);
-                s32ReadLen = fread(pu8Buf, 1, pstVdecThreadParam->s32MinBufSize, fpStrm);
+                //fseek(fpStrm, 0, SEEK_SET);
+                //s32ReadLen = fread(pu8Buf, 1, pstVdecThreadParam->s32MinBufSize, fpStrm);
             }
             else
             {
@@ -317,7 +322,8 @@ SendAgain:
     {
         free(pu8Buf);
     }
-    fclose(fpStrm);
+    closeMp4File(hMp4File);//
+    //fclose(fpStrm);
 
     return (HI_VOID *)HI_SUCCESS;
 }
@@ -1061,7 +1067,7 @@ HI_S32 SAMPLE_H264_VDEC_VPSS_VO(HI_VOID)
         stVdecSend[i].enType          = astSampleVdec[i].enType;
         stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;
         stVdecSend[i].s32ChnId        = i;
-        stVdecSend[i].s32IntervalTime = 30000;
+        stVdecSend[i].s32IntervalTime = 33333;
         stVdecSend[i].u64PtsInit      = 0;
         stVdecSend[i].u64PtsIncrease  = 0;
         stVdecSend[i].eThreadCtrl     = THREAD_CTRL_START;
@@ -1306,12 +1312,12 @@ HI_S32 SAMPLE_MP4AVC_VDEC_VPSS_VO(HI_VOID)
     *************************************************/
     for(i=0; i<u32VdecChnNum; i++)
     {
-        snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "720p_8bit.h264");
+        snprintf(stVdecSend[i].cFileName, sizeof(stVdecSend[i].cFileName), "720p_8bit.mp4");
         snprintf(stVdecSend[i].cFilePath, sizeof(stVdecSend[i].cFilePath), "%s", SAMPLE_STREAM_PATH);
         stVdecSend[i].enType          = astSampleVdec[i].enType;
         stVdecSend[i].s32StreamMode   = astSampleVdec[i].enMode;
         stVdecSend[i].s32ChnId        = i;
-        stVdecSend[i].s32IntervalTime = 30000;
+        stVdecSend[i].s32IntervalTime = 33333;
         stVdecSend[i].u64PtsInit      = 0;
         stVdecSend[i].u64PtsIncrease  = 0;
         stVdecSend[i].eThreadCtrl     = THREAD_CTRL_START;

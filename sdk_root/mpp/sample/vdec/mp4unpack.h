@@ -23,7 +23,8 @@ typedef struct _MP4ENC_NaluUnit
 MP4FileHandle openMp4File(char *pFileName);
 int analysisMp4File(MP4FileHandle hMp4File);
 void closeMp4File(MP4FileHandle hMp4File);
-int getH264Stream(MP4FileHandle hMp4File, unsigned char* pData, int * pSize, int * pquit);
+//int getH264Stream(MP4FileHandle hMp4File, unsigned char* pData, int * pSize, int * pquit);
+int getH264Stream(MP4FileHandle hMp4File, unsigned char* pData, int * pSize);
 int writeH264Stream(FILE* outFile, unsigned char* pData, int nSize);
 
 #endif // __MP4UNPACK_H

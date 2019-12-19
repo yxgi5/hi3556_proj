@@ -76,6 +76,20 @@ combo_dev_attr_t DC_OV9712_ATTR =
     }
 };
 
+combo_dev_attr_t DC_NANEYEM_ATTR =
+{
+    .devno = 0,
+    .input_mode = INPUT_MODE_CMOS,
+    .data_rate = DATA_RATE_X1,
+    .img_rect = {0, 0, 320, 320},
+    {
+        .mipi_attr =
+        {
+        }
+    }
+};
+
+
 combo_dev_attr_t MIPI_4lane_CHN0_SENSOR_IMX477_12BIT_12M_NOWDR_ATTR =
 {
     .devno = 0,
@@ -1099,6 +1113,59 @@ VI_DEV_ATTR_S DEV_ATTR_OV9712_DC_720P_BASE =
     DATA_RATE_X1
 };
 
+VI_DEV_ATTR_S DEV_ATTR_NANEYEM_DC_320P_BASE =
+{
+    /* interface mode */
+    VI_MODE_DIGITAL_CAMERA,
+    /* multiplex mode */
+    VI_WORK_MODE_1Multiplex,
+    /* ComponentMask */
+    {0x0FFC0000,    0x0},
+    /* progessive or interleaving */
+    VI_SCAN_PROGRESSIVE,
+    /*AdChnId*/
+    {-1, -1, -1, -1},
+    /*enDataSeq, only support yuv*/
+    VI_DATA_SEQ_YUYV,
+    
+    /* synchronization information */
+    {
+    /*port_vsync   port_vsync_neg     port_hsync        port_hsync_neg        */
+    VI_VSYNC_FIELD, VI_VSYNC_NEG_HIGH, VI_HSYNC_VALID_SINGNAL,VI_HSYNC_NEG_HIGH,VI_VSYNC_VALID_SINGAL,VI_VSYNC_VALID_NEG_HIGH,
+
+    /*hsync_hfb    hsync_act    hsync_hhb*/
+    {0,            320,        0,
+    /*vsync0_vhb vsync0_act vsync0_hhb*/
+     0,           320,        0,
+    /*vsync1_vhb vsync1_act vsync1_hhb*/
+     0,            0,            0}
+    },
+    /* input data type */
+    VI_DATA_TYPE_RGB,
+    /* Data Reverse */
+    HI_FALSE,
+    /* Input size */
+    {320 , 320},
+    /* Attribute of BAS */
+    {
+        {
+            {320 , 320},
+
+        },
+        {
+            VI_REPHASE_MODE_NONE,
+            VI_REPHASE_MODE_NONE
+        }
+    },
+    /* Attribute of WDR */
+    {
+        WDR_MODE_NONE,
+        320
+    },
+    DATA_RATE_X1
+};
+
+
 VI_PIPE_ATTR_S PIPE_ATTR_1920x1080_RAW12_420_3DNR_RFR =
 {
     VI_PIPE_BYPASS_NONE, HI_FALSE,HI_FALSE,
@@ -1226,6 +1293,25 @@ VI_PIPE_ATTR_S PIPE_ATTR_1280x720_RAW12_420_3DNR_RFR =
     { -1, -1}
 };
 
+// for naneyem
+VI_PIPE_ATTR_S PIPE_ATTR_320x320_RAW10_420_3DNR_RFR =
+{
+    VI_PIPE_BYPASS_NONE, HI_FALSE,HI_FALSE,
+    320, 320,
+    PIXEL_FORMAT_RGB_BAYER_10BPP,
+    COMPRESS_MODE_LINE,
+    DATA_BITWIDTH_10,
+    HI_TRUE,
+    {
+        PIXEL_FORMAT_YVU_SEMIPLANAR_420,
+        DATA_BITWIDTH_10,
+        VI_NR_REF_FROM_RFR,
+        COMPRESS_MODE_NONE
+    },
+    HI_FALSE,
+    { -1, -1}
+};
+
 
 VI_CHN_ATTR_S CHN_ATTR_1920x1080_420_SDR8_LINEAR =
 {
@@ -1299,6 +1385,20 @@ VI_CHN_ATTR_S CHN_ATTR_1280x720_420_SDR8_LINEAR =
     { -1, -1}
 };
 
+// for naneyem
+VI_CHN_ATTR_S CHN_ATTR_320x320_420_SDR8_LINEAR =
+{
+    {320, 320},
+    PIXEL_FORMAT_YVU_SEMIPLANAR_420,
+    DYNAMIC_RANGE_SDR8,
+    VIDEO_FORMAT_LINEAR,
+    COMPRESS_MODE_NONE,
+    0,      0,
+    0,
+    { -1, -1}
+};
+
+
 
 HI_BOOL IsSensorInput(SAMPLE_SNS_TYPE_E enSnsType)
 {
@@ -1333,6 +1433,7 @@ static input_mode_t SAMPLE_COMM_VI_GetSnsInputMode(SAMPLE_SNS_TYPE_E enSnsType)
 
         case OMNIVISION_OV426_DC_160K_30FPS_12BIT:
         case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
             enInputMode = INPUT_MODE_CMOS;
             break;
 
@@ -1974,6 +2075,9 @@ HI_S32 SAMPLE_COMM_VI_GetComboAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, combo_dev_t
         case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             hi_memcpy(pstComboAttr, sizeof(combo_dev_attr_t), &DC_OV9712_ATTR, sizeof(combo_dev_attr_t));
             break;
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            hi_memcpy(pstComboAttr, sizeof(combo_dev_attr_t), &DC_NANEYEM_ATTR, sizeof(combo_dev_attr_t));
+            break;
         default:
             SAMPLE_PRT("not support enSnsType: %d\n", enSnsType);
             hi_memcpy(pstComboAttr, sizeof(combo_dev_attr_t), &MIPI_4lane_CHN0_SENSOR_IMX477_12BIT_12M_NOWDR_ATTR, sizeof(combo_dev_attr_t));
@@ -2290,6 +2394,10 @@ HI_S32 SAMPLE_COMM_VI_GetDevAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_DEV_ATTR_S
         case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_OV9712_DC_720P_BASE, sizeof(VI_DEV_ATTR_S));
             break;
+ 
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_NANEYEM_DC_320P_BASE, sizeof(VI_DEV_ATTR_S));
+            break;
 
         default:
             hi_memcpy(pstViDevAttr, sizeof(VI_DEV_ATTR_S), &DEV_ATTR_IMX477_8M_BASE, sizeof(VI_DEV_ATTR_S));
@@ -2361,6 +2469,10 @@ HI_S32 SAMPLE_COMM_VI_GetPipeAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_PIPE_ATTR
         case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_1280x720_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
             break;
+
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_320x320_RAW10_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
+            break;
             
         default:
             hi_memcpy(pstPipeAttr, sizeof(VI_PIPE_ATTR_S), &PIPE_ATTR_3840x2160_RAW12_420_3DNR_RFR, sizeof(VI_PIPE_ATTR_S));
@@ -2427,6 +2539,10 @@ HI_S32 SAMPLE_COMM_VI_GetChnAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, VI_CHN_ATTR_S
 
         case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             hi_memcpy(pstChnAttr, sizeof(VI_CHN_ATTR_S), &CHN_ATTR_1280x720_420_SDR8_LINEAR, sizeof(VI_CHN_ATTR_S));
+            break;
+            
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            hi_memcpy(pstChnAttr, sizeof(VI_CHN_ATTR_S), &CHN_ATTR_320x320_420_SDR8_LINEAR, sizeof(VI_CHN_ATTR_S));
             break;
 
         default:
@@ -3847,6 +3963,10 @@ HI_S32 SAMPLE_COMM_VI_GetSizeBySensor(SAMPLE_SNS_TYPE_E enMode, PIC_SIZE_E* penS
         case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             *penSize = PIC_720P;
             break;
+
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            *penSize = PIC_320x320;
+            break;
             
         default:
             *penSize = PIC_3840x2160;
@@ -3903,6 +4023,10 @@ HI_S32 SAMPLE_COMM_VI_GetFrameRateBySensor(SAMPLE_SNS_TYPE_E enMode, HI_U32* pu3
 
         case SONY_IMX277_SLVS_2M_240FPS_12BIT:
             *pu32FrameRate = 240;
+            break;
+
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            *pu32FrameRate = 24;
             break;
 
         default:

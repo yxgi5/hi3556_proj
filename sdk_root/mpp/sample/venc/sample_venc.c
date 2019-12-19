@@ -1911,6 +1911,10 @@ HI_S32 SAMPLE_VENC_H265_JPEG(void)
 
     HI_U32 u32SupplementConfig = HI_TRUE;
 
+    VO_DEV             VoDev          = SAMPLE_VO_DEV_DHD0;
+    VO_CHN             VoChn          = 0;
+    SAMPLE_VO_CONFIG_S stVoConfig     = {0};
+
     for(i=0; i<s32ChnNum; i++)
     {
         s32Ret = SAMPLE_COMM_SYS_GetPicSize(enSize[i], &stSize[i]);
@@ -2008,6 +2012,36 @@ HI_S32 SAMPLE_VENC_H265_JPEG(void)
         goto EXIT_VENC_JPEGE_STOP;
     }
 
+    /************************************************
+     config vo
+    *************************************************/
+    SAMPLE_COMM_VO_GetDefConfig(&stVoConfig);
+    stVoConfig.VoDev = VoDev;
+    stVoConfig.enDstDynamicRange = DYNAMIC_RANGE_SDR8;
+    stVoConfig.enVoIntfType = VO_INTF_HDMI;
+    stVoConfig.enIntfSync = VO_OUTPUT_1080P60;
+    stVoConfig.enPicSize = enSize[0];
+    
+    /************************************************
+     start vo
+    *************************************************/
+    s32Ret = SAMPLE_COMM_VO_StartVO(&stVoConfig);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("start vo failed. s32Ret: 0x%x !\n", s32Ret);
+        goto EXIT5;
+    }
+
+    /************************************************
+     Bind vpss and VO
+    *************************************************/
+    s32Ret = SAMPLE_COMM_VPSS_Bind_VO(VpssGrp, VpssChn[0], stVoConfig.VoDev, VoChn);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("vo bind vpss failed. s32Ret: 0x%x !\n", s32Ret);
+        goto EXIT4;
+    }
+
     /******************************************
      stream save process
     ******************************************/
@@ -2038,7 +2072,6 @@ HI_S32 SAMPLE_VENC_H265_JPEG(void)
         i++;
     }
 
-
     printf("please press twice ENTER to exit this sample\n");
     getchar();
     getchar();
@@ -2048,6 +2081,10 @@ HI_S32 SAMPLE_VENC_H265_JPEG(void)
     ******************************************/
     SAMPLE_COMM_VENC_StopGetStream();
 
+EXIT4:
+    SAMPLE_COMM_VPSS_UnBind_VO(VpssGrp, VpssChn[0], stVoConfig.VoDev, VoChn);
+EXIT5:
+    SAMPLE_COMM_VO_StopVO(&stVoConfig);
 EXIT_VENC_JPEGE_UnBind:
     SAMPLE_COMM_VPSS_UnBind_VENC(VpssGrp,VpssChn[1],VencChn[1]);
 EXIT_VENC_JPEGE_STOP:

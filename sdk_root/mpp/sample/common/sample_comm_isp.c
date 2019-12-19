@@ -204,6 +204,17 @@ ISP_PUB_ATTR_S ISP_PUB_ATTR_OV9712_720P_30FPS =
     0,
 };
 
+ISP_PUB_ATTR_S ISP_PUB_ATTR_NANEYEM_320P_24FPS =
+{
+    {0, 0, 320, 320},
+    {320, 320}, 
+    24,
+    BAYER_BGGR,
+    WDR_MODE_NONE,
+    0,
+};
+
+
 HI_S32 SAMPLE_COMM_ISP_GetIspAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, ISP_PUB_ATTR_S* pstPubAttr)
 {
     switch (enSnsType)
@@ -273,6 +284,10 @@ HI_S32 SAMPLE_COMM_ISP_GetIspAttrBySns(SAMPLE_SNS_TYPE_E enSnsType, ISP_PUB_ATTR
             memcpy(pstPubAttr, &ISP_PUB_ATTR_OV9712_720P_30FPS, sizeof(ISP_PUB_ATTR_S));
             break;
 
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            memcpy(pstPubAttr, &ISP_PUB_ATTR_NANEYEM_320P_24FPS, sizeof(ISP_PUB_ATTR_S));
+            break;
+
         default:
             memcpy(pstPubAttr, &ISP_PUB_ATTR_IMX477_8M_30FPS, sizeof(ISP_PUB_ATTR_S));
             break;
@@ -300,12 +315,12 @@ ISP_SNS_OBJ_S* SAMPLE_COMM_ISP_GetSnsObj(HI_U32 u32SnsId)
         case SONY_IMX290_MIPI_2M_30FPS_12BIT_WDR3TO1:
             return &stSnsImx290Obj;
 
-	case SONY_IMX334_SLAVE_MIPI_8M_30FPS_12BIT:
-	    return &stSnsImx334SlaveObj;
+	    case SONY_IMX334_SLAVE_MIPI_8M_30FPS_12BIT:
+	        return &stSnsImx334SlaveObj;
 
-	case SONY_IMX334_MIPI_8M_30FPS_12BIT:
+	    case SONY_IMX334_MIPI_8M_30FPS_12BIT:
         case SONY_IMX334_MIPI_8M_30FPS_12BIT_WDR2TO1:
-	    return &stSnsImx334Obj;
+	        return &stSnsImx334Obj;
 
         case SONY_IMX277_SLVS_8M_120FPS_10BIT:
         case SONY_IMX277_SLVS_8M_30FPS_12BIT:
@@ -319,6 +334,9 @@ ISP_SNS_OBJ_S* SAMPLE_COMM_ISP_GetSnsObj(HI_U32 u32SnsId)
 
         case OMNIVISION_OV9712_DC_720P_30FPS_12BIT:
             return &stSnsOv9712Obj;
+
+        case ASM_NANEYEM_DC_320P_24FPS_10BIT:
+            return &stSnsNaneyemObj;
 
         default:
             return HI_NULL;

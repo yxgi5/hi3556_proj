@@ -119,6 +119,7 @@ void SAMPLE_VIO_Usage(char* sPrgNm)
     printf("\t 6)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+SPREAD.\n");
     printf("\t 7)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+SPREAD.\n");
 	printf("\t 8)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+SPREAD.\n");
+    printf("\t 9)online   SDR8     VI - VO - HDMI.             Embeded isp, LDC+SPREAD.\n");
     
     printf("intf:\n");
     printf("\t 0) vo HDMI output, default.\n");
@@ -2518,6 +2519,371 @@ HI_S32 SAMPLE_VIO_OV9712_PreView(VO_INTF_TYPE_E enVoIntfType)
 }
 
 
+HI_S32 SAMPLE_VIO_NANEYEM_PreView(VO_INTF_TYPE_E enVoIntfType)
+{
+    HI_S32             s32Ret;
+    VI_DEV             ViDev               = 5; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
+    VI_PIPE            ViPipe              = 0; // 表3-2 Hi3559AV100 DEV与 MIPI/SLVS/BT.1120/BT.656/BT601/DC接口的绑定关系
+    VI_CHN             ViChn               = 0;
+    HI_S32             s32WorkSnsId        = 0;
+    VO_DEV             VoDev               = SAMPLE_VO_DEV_DHD0;
+    VO_CHN             VoChn               = 0;
+    SIZE_S             stSize;
+    VB_CONFIG_S        stVbConf;
+    PIC_SIZE_E         enPicSize           = PIC_320x320;
+    HI_U32             u32BlkSize;
+    VI_LDC_ATTR_S      stLDCAttr           = {0} ;
+    SPREAD_ATTR_S      stSpreadAttr        = {0};
+    SAMPLE_VI_CONFIG_S stViConfig  = {0};
+    SAMPLE_VO_CONFIG_S stVoConfig  = {0};
+    combo_dev_t          ComboDev;
+
+    DYNAMIC_RANGE_E    enDynamicRange = DYNAMIC_RANGE_SDR8;
+    PIXEL_FORMAT_E     enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+    //PIXEL_FORMAT_E     enPixFormat    = PIXEL_FORMAT_RGB_BAYER_12BPP;
+    VIDEO_FORMAT_E     enVideoFormat  = VIDEO_FORMAT_LINEAR;
+    COMPRESS_MODE_E    enCompressMode = COMPRESS_MODE_NONE;
+    VI_VPSS_MODE_E     enMastPipeMode = VI_OFFLINE_VPSS_OFFLINE;
+
+    /************************************************
+    step1:  Get all sensors information
+    *************************************************/
+    SAMPLE_COMM_VI_GetSensorInfo(&stViConfig);
+    ComboDev = SAMPLE_COMM_VI_GetComboDevBySensor(stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType, s32WorkSnsId);
+    
+    SAMPLE_PRT("stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType = %d\n", stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType); // by alex
+
+
+    stViConfig.s32WorkingViNum                           = 1;
+
+    stViConfig.as32WorkingViId[0]                        = 0;
+
+    // 目前是DC0, SAMPLE_COMM_VI_GetComboDevBySensorm()目前返回的ComboDev就是0，
+    // 如果接DC1、DC2，就要修改SAMPLE_COMM_VI_GetComboDevBySensorm()了
+    stViConfig.astViInfo[0].stSnsInfo.MipiDev            = ComboDev; 
+    stViConfig.astViInfo[0].stSnsInfo.s32BusId           = 0;
+
+    stViConfig.astViInfo[0].stDevInfo.ViDev              = ViDev;
+    stViConfig.astViInfo[0].stDevInfo.enWDRMode          = WDR_MODE_NONE;
+
+    stViConfig.astViInfo[0].stPipeInfo.enMastPipeMode    = enMastPipeMode;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[0]          = ViPipe;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[1]          = -1;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[2]          = -1;
+    stViConfig.astViInfo[0].stPipeInfo.aPipe[3]          = -1;
+
+    stViConfig.astViInfo[0].stChnInfo.ViChn              = ViChn;
+    stViConfig.astViInfo[0].stChnInfo.enPixFormat        = enPixFormat;
+    stViConfig.astViInfo[0].stChnInfo.enDynamicRange     = enDynamicRange;
+    stViConfig.astViInfo[0].stChnInfo.enVideoFormat      = enVideoFormat;
+    stViConfig.astViInfo[0].stChnInfo.enCompressMode     = enCompressMode;
+
+    /************************************************
+    step2:  Get  input size
+    *************************************************/
+    s32Ret = SAMPLE_COMM_VI_GetSizeBySensor(stViConfig.astViInfo[s32WorkSnsId].stSnsInfo.enSnsType, &enPicSize);
+    
+    SAMPLE_PRT("enPicSize = %d\n", enPicSize); // by alex
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VI_GetSizeBySensor failed!\n");
+        return s32Ret;
+    }
+
+    s32Ret = SAMPLE_COMM_SYS_GetPicSize(enPicSize, &stSize);
+    
+    SAMPLE_PRT("stSize.u32Width = %d, stSize.u32Height = %d\n", stSize.u32Width, stSize.u32Height); // by alex
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_SYS_GetPicSize failed!\n");
+        return s32Ret;
+    }
+
+    /************************************************
+    step3:  Init SYS and common VB
+    *************************************************/
+    hi_memset(&stVbConf, sizeof(VB_CONFIG_S), 0, sizeof(VB_CONFIG_S));
+    stVbConf.u32MaxPoolCnt              = 2;
+
+    u32BlkSize = COMMON_GetPicBufferSize(stSize.u32Width, stSize.u32Height, SAMPLE_PIXEL_FORMAT, DATA_BITWIDTH_10, COMPRESS_MODE_SEG, DEFAULT_ALIGN);
+    stVbConf.astCommPool[0].u64BlkSize  = u32BlkSize;
+    stVbConf.astCommPool[0].u32BlkCnt   = 10;
+
+    u32BlkSize = VI_GetRawBufferSize(stSize.u32Width, stSize.u32Height, PIXEL_FORMAT_RGB_BAYER_16BPP, COMPRESS_MODE_NONE, DEFAULT_ALIGN);
+    stVbConf.astCommPool[1].u64BlkSize  = u32BlkSize;
+    stVbConf.astCommPool[1].u32BlkCnt   = 4;
+
+    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConf);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("system init failed with %d!\n", s32Ret);
+        SAMPLE_COMM_SYS_Exit();
+        return s32Ret;
+    }
+
+    s32Ret = SAMPLE_COMM_VI_SetParam(&stViConfig);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_COMM_SYS_Exit();
+        return s32Ret;
+    }
+    else
+    {
+    	asm("NOP");
+    }
+
+
+    /************************************************
+    step4:  Init VI and VO
+    *************************************************/
+    SAMPLE_COMM_VO_GetDefConfig(&stVoConfig);
+    
+    stVoConfig.enIntfSync = VO_OUTPUT_1080P60;
+    s32Ret = SAMPLE_VIO_StartViVo(&stViConfig, &stVoConfig);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_VIO_StartViVo failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+#if 0
+    {
+        ISP_EXPOSURE_ATTR_S stExpAttr;
+        HI_MPI_ISP_GetExposureAttr(ViPipe, &stExpAttr);
+
+        stExpAttr.bByPass=HI_FALSE;
+        stExpAttr.enOpType=OP_TYPE_AUTO;
+        stExpAttr.u8AERunInterval=1;
+        stExpAttr.bHistStatAdjust=HI_TRUE;
+        stExpAttr.bAERouteExValid=HI_FALSE;
+        stExpAttr.stAuto.stExpTimeRange.u32Min=0;
+        stExpAttr.stAuto.stExpTimeRange.u32Max=150000;/*RW; Range:[0x0, 0xFFFFFFFF]; Format:32.0; sensor exposure time (unit: us ), it's related to the specific sensor */
+        stExpAttr.stAuto.stAGainRange.u32Min=1024;
+        stExpAttr.stAuto.stAGainRange.u32Max=31356;/*RW; Range:[0x400, 0xFFFFFFFF]; Format:22.10; sensor analog gain (unit: times, 10bit precision), it's related to the specific sensor */
+        stExpAttr.stAuto.stDGainRange.u32Min=1024;
+        stExpAttr.stAuto.stDGainRange.u32Max=128913;/*RW; Range:[0x400, 0xFFFFFFFF]; Format:22.10;  sensor digital gain (unit: times, 10bit precision), it's related to the specific sensor */
+        stExpAttr.stAuto.stISPDGainRange.u32Min=1024;
+        stExpAttr.stAuto.stISPDGainRange.u32Max=2048;/*RW; Range:[0x400, 0x40000]; Format:22.10;  ISP digital gain (unit: times, 10bit precision), it's related to the ISP digital gain range */
+        stExpAttr.stAuto.stSysGainRange.u32Min=1024;
+        stExpAttr.stAuto.stSysGainRange.u32Max=12288;/*RW; Range:[0x400, 0xFFFFFFFF]; Format:22.10;  system gain (unit: times, 10bit precision), it's related to the specific sensor and ISP Dgain range */
+        stExpAttr.stAuto.u32GainThreshold=15789828;/*RW; Range:[0x400, 0xFFFFFFFF]; Format:22.10;  Gain threshold for slow shutter mode (unit: times, 10bit precision)*/
+        stExpAttr.stAuto.u8Speed=128;/*RW; Range:[0x0, 0xFF]; Format:8.0; AE adjust step for dark scene to bright scene switch */
+        stExpAttr.stAuto.u16BlackSpeedBias=144;
+        stExpAttr.stAuto.u8Tolerance=2;
+        stExpAttr.stAuto.u8Compensation=0x38;
+        stExpAttr.stAuto.u16EVBias=1024;
+
+        HI_MPI_ISP_SetExposureAttr(ViPipe, &stExpAttr);
+    }
+#endif
+#if 0
+    s32Ret = SetStaticStatisticsCfg(ViPipe);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SetStaticStatisticsCfg failed with %#x!\n", s32Ret);
+        goto EXIT1;
+    }
+#endif
+
+    /************************************************
+    step5:  Bind VI and VO
+    *************************************************/
+    s32Ret = SAMPLE_COMM_VI_Bind_VO(ViPipe, ViChn, VoDev, VoChn);
+    
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VI_Bind_VO failed with %#x!\n", s32Ret);
+        goto EXIT1;
+    }
+
+    while(1)
+    {
+        char c;
+        c=getchar();
+        if(c=='q' || c=='Q')
+            break;
+        else if(c=='f')
+        {
+            int i;
+            ISP_INNER_STATE_INFO_S stInnerStateInfo;
+            s32Ret = HI_MPI_ISP_QueryInnerStateInfo(ViPipe, &stInnerStateInfo);
+            if (HI_SUCCESS != s32Ret)
+            {
+                SAMPLE_PRT("HI_MPI_ISP_QueryInnerStateInfo failed with %#x!\n", s32Ret);
+                goto EXIT1;
+            }
+
+            for(i=0;i<ISP_SHARPEN_GAIN_NUM;i++)
+            {
+                SAMPLE_PRT("stInnerStateInfo.au16TextureStr[%d] = %d\n", i, stInnerStateInfo.au16TextureStr[i]);
+            }
+            for(i=0;i<ISP_SHARPEN_GAIN_NUM;i++)
+            {
+                SAMPLE_PRT("stInnerStateInfo.au16EdgeStr[%d] = %d\n", i, stInnerStateInfo.au16EdgeStr[i]);
+            }
+
+            SAMPLE_PRT("stInnerStateInfo.u16TextureFreq = %d\n", stInnerStateInfo.u16TextureFreq);
+            SAMPLE_PRT("stInnerStateInfo.u16EdgeFreq = %d\n", stInnerStateInfo.u16EdgeFreq);
+            SAMPLE_PRT("stInnerStateInfo.u8OverShoot = %d\n", stInnerStateInfo.u8OverShoot);
+            SAMPLE_PRT("stInnerStateInfo.u8UnderShoot = %d\n", stInnerStateInfo.u8UnderShoot);
+            SAMPLE_PRT("stInnerStateInfo.u8ShootSupStr = %d\n", stInnerStateInfo.u8ShootSupStr);
+            SAMPLE_PRT("stInnerStateInfo.u8NrLscRatio = %d\n", stInnerStateInfo.u8NrLscRatio);
+
+            
+            for(i=0;i<ISP_BAYER_CHN_NUM;i++)
+            {
+                SAMPLE_PRT("stInnerStateInfo.au16CoarseStr[%d] = %d\n", i, stInnerStateInfo.au16CoarseStr[i]);
+            }
+            for(i=0;i<WDR_MAX_FRAME_NUM;i++)
+            {
+                SAMPLE_PRT("stInnerStateInfo.au8WDRFrameStr[%d] = %d\n", i, stInnerStateInfo.au8WDRFrameStr[i]);
+            }
+            
+            for(i=0;i<ISP_BAYER_CHN_NUM;i++)
+            {
+                SAMPLE_PRT("stInnerStateInfo.au8ChromaStr[%d] = %d\n", i, stInnerStateInfo.au8ChromaStr[i]);
+            }
+            
+            SAMPLE_PRT("stInnerStateInfo.u8FineStr = %d\n", stInnerStateInfo.u8FineStr);
+            SAMPLE_PRT("stInnerStateInfo.u16CoringWgt = %d\n", stInnerStateInfo.u16CoringWgt);
+            SAMPLE_PRT("stInnerStateInfo.u16DeHazeStrengthActual = %d\n", stInnerStateInfo.u16DeHazeStrengthActual);
+            SAMPLE_PRT("stInnerStateInfo.u16DrcStrengthActual = %d\n", stInnerStateInfo.u16DrcStrengthActual);
+
+            for(i=0;i<3;i++)
+            {
+                SAMPLE_PRT("stInnerStateInfo.u32WDRExpRatioActual[%d] = %d\n", i, stInnerStateInfo.u32WDRExpRatioActual[i]);
+            }
+
+            SAMPLE_PRT("stInnerStateInfo.bWDRSwitchFinish = %d\n", stInnerStateInfo.bWDRSwitchFinish);
+            SAMPLE_PRT("stInnerStateInfo.bResSwitchFinish = %d\n", stInnerStateInfo.bResSwitchFinish);
+            SAMPLE_PRT("stInnerStateInfo.u8FineStr = %d\n", stInnerStateInfo.u8FineStr);
+            for(i=0;i<ISP_BAYER_CHN_NUM;i++)
+            {
+                SAMPLE_PRT("stInnerStateInfo.au16BLActual[%d] = %d\n", i, stInnerStateInfo.au16BLActual[i]);
+            }
+        }
+    }
+//	        typedef struct hiISP_INNER_STATE_INFO_S
+//	        {
+//	
+//	            HI_U16 au16TextureStr[ISP_SHARPEN_GAIN_NUM];     /* RW; range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
+//	            HI_U16 au16EdgeStr[ISP_SHARPEN_GAIN_NUM];        /* RW; range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
+//	            HI_U16 u16TextureFreq;         /* RW; range: [0, 4095];Format:6.6; Texture frequency adjustment. Texture and detail will be finer when it increase*/
+//	            HI_U16 u16EdgeFreq;            /* RW; range: [0, 4095];Format:6.6; Edge frequency adjustment. Edge will be narrower and thiner when it increase*/
+//	            HI_U8  u8OverShoot;            /* RW; range: [0, 127]; Format:7.0;u8OvershootAmt*/
+//	            HI_U8  u8UnderShoot;           /* RW; range: [0, 127]; Format:7.0;u8UndershootAmt*/
+//	            HI_U8  u8ShootSupStr;          /* RW; range: [0, 255]; Format:8.0;overshoot and undershoot suppression strength, the amplitude and width of shoot will be decrease when shootSupSt increase*/
+//	
+//	            HI_U8   u8NrLscRatio;                       /*RW;Range:[0x0,0xff];Format:8.0; Strength of reserving the random noise according to luma*/
+//	            HI_U16  au16CoarseStr[ISP_BAYER_CHN_NUM];   /*RW;Range:[0x0,0x3ff];Format:10.0; Coarse Strength of noise reduction */
+//	            HI_U8   au8WDRFrameStr[WDR_MAX_FRAME_NUM];  /*RW;Range:[0x0,0x50];Format:7.0; Coarse strength of each frame in wdr mode*/
+//	            HI_U8   au8ChromaStr[ISP_BAYER_CHN_NUM];    /*RW;Range:[0x0,0x3];Format:2.0;Strength of Chrmoa noise reduction for R/Gr/Gb/B channel*/
+//	            HI_U8   u8FineStr;                 /*RW;Range:[0x0,0x80];Format:8.0;Strength of Luma noise reduction*/
+//	            HI_U16  u16CoringWgt;              /*RW;Range:[0x0,0xC80];Format:12.0;Strength of reserving the random noise*/
+//	
+//	            HI_U16 u16DeHazeStrengthActual;      /* RW;Range:[0,0xFF];Format:8.0;actual dehze strength */
+//	            HI_U16 u16DrcStrengthActual;          /* RW;Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF];Strength of dynamic range compression.
+//	                                                                   Higher values lead to higher differential gain between shadows and highlights. */
+//	            HI_U32 u32WDRExpRatioActual[3];        /*RW; Range:[0x40, 0x4000]; Format:26.6; 0x40 means 1 times.
+//	                                                                     When enExpRatioType is OP_TYPE_AUTO, u32ExpRatio is invalid.
+//	                                                                     When enExpRatioType is OP_TYPE_MANUAL, u32ExpRatio is quotient of long exposure time / short exposure time. */
+//	            HI_BOOL bWDRSwitchFinish;           /* RW; Range:[0, 1];Format:1.0;HI_TRUE: WDR switch is finished*/
+//	            HI_BOOL bResSwitchFinish;           /* RW; Range:[0, 1];Format:1.0;HI_TRUE: Resolution switch is finished*/
+//	            HI_U16 au16BLActual[ISP_BAYER_CHN_NUM]; /* RW; Range: [0x0, 0xFFF];Format:12.0;Actual Black level values that correspond to the black levels of the R,Gr, Gb, and B components respectively.*/
+//	        } ISP_INNER_STATE_INFO_S;
+    
+/*
+    stLDCAttr.bEnable = HI_TRUE;
+    stLDCAttr.stAttr.bAspect = 0;
+    stLDCAttr.stAttr.s32XRatio = 100;
+    stLDCAttr.stAttr.s32YRatio = 100;
+    stLDCAttr.stAttr.s32XYRatio = 100;
+    stLDCAttr.stAttr.s32CenterXOffset = 0;
+    stLDCAttr.stAttr.s32CenterYOffset = 0;
+    stLDCAttr.stAttr.s32DistortionRatio = 500;
+
+    s32Ret = HI_MPI_VI_SetChnLDCAttr(ViPipe,ViChn,&stLDCAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnLDCAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+    stSpreadAttr.bEnable        = HI_TRUE;
+    stSpreadAttr.u32SpreadCoef  = 16;
+    stSpreadAttr.stDestSize.u32Width = 1280;
+    stSpreadAttr.stDestSize.u32Height = 720;
+
+    s32Ret = HI_MPI_VI_SetChnSpreadAttr(ViPipe,ViChn,&stSpreadAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnLDCAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+
+    printf("now LDC on and spread on, press any key to switch spread Off!\n");
+    getchar();
+
+    stSpreadAttr.bEnable              = HI_FALSE;
+    stSpreadAttr.u32SpreadCoef        = 16;
+    stSpreadAttr.stDestSize.u32Width  = 1280;
+    stSpreadAttr.stDestSize.u32Height = 720;
+
+    s32Ret = HI_MPI_VI_SetChnSpreadAttr(ViPipe,ViChn,&stSpreadAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnSpreadAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+    printf("now LDC on and spread off, press any key to switch spread On!\n");
+    getchar();
+
+    stSpreadAttr.bEnable             = HI_TRUE;
+    stSpreadAttr.u32SpreadCoef       = 16;
+    stSpreadAttr.stDestSize.u32Width = 1280;
+    stSpreadAttr.stDestSize.u32Height= 720;
+
+
+    s32Ret = HI_MPI_VI_SetChnSpreadAttr(ViPipe,ViChn,&stSpreadAttr);
+
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VI_SetChnSpreadAttr failed witfh %d\n", s32Ret);
+        goto EXIT;
+    }
+
+*/
+
+/*
+	delay_ms(100);
+	ov9712_write_register(ViPipe, 0x2a, 0x9c);
+    ov9712_write_register(ViPipe, 0x2b, 0x06);
+    ov9712_write_register(ViPipe, 0x10, 0xf0);
+    ov9712_write_register(ViPipe, 0x00, 0x3f);
+*/    
+    //PAUSE();
+
+    SAMPLE_COMM_VI_UnBind_VO(ViPipe, ViChn, VoDev, VoChn);
+
+    EXIT1:
+    SAMPLE_VIO_StopViVo(&stViConfig, &stVoConfig);
+
+    EXIT:
+    SAMPLE_COMM_SYS_Exit();
+
+    return s32Ret;
+}
+
+
+
 HI_S32 SAMPLE_xxx_PreView(VO_INTF_TYPE_E enVoIntfType)
 {
     HI_S32             s32Ret;
@@ -2992,8 +3358,12 @@ int main(int argc, char* argv[])
 		case 8:
             s32Ret = SAMPLE_VIO_OV9712_PreView(enVoIntfType);
             break;
-            
+
         case 9:
+            s32Ret = SAMPLE_VIO_NANEYEM_PreView(enVoIntfType);
+            break;
+            
+        case 10:
             s32Ret = SAMPLE_xxx_PreView(enVoIntfType);
             break;
             
